@@ -1,0 +1,58 @@
+[
+  {
+    "objectID": "notes/ca/geoportal_api/index.html",
+    "href": "notes/ca/geoportal_api/index.html",
+    "title": "Preus a les gasolineres d’Espanya",
+    "section": "",
+    "text": "On s’ón’ubiquen els punts de recàrrega?\nQuin carburant ofereixen?\nQuin preu cobren? Com canvia al llarg del temps?\nQuin horari obre?\nÉs d’autoservei?\nÉs una cooperativa?\nQui n’és el propietari?\nExisteixen portals similars a Europa"
+  },
+  {
+    "objectID": "notes/ca/geoportal_api/index.html#quina-informació-hi-ha-al-geoportal",
+    "href": "notes/ca/geoportal_api/index.html#quina-informació-hi-ha-al-geoportal",
+    "title": "Preus a les gasolineres d’Espanya",
+    "section": "",
+    "text": "On s’ón’ubiquen els punts de recàrrega?\nQuin carburant ofereixen?\nQuin preu cobren? Com canvia al llarg del temps?\nQuin horari obre?\nÉs d’autoservei?\nÉs una cooperativa?\nQui n’és el propietari?\nExisteixen portals similars a Europa"
+  },
+  {
+    "objectID": "notes/ca/geoportal_api/index.html#com-obtenim-les-dades",
+    "href": "notes/ca/geoportal_api/index.html#com-obtenim-les-dades",
+    "title": "Preus a les gasolineres d’Espanya",
+    "section": "Com obtenim les dades?",
+    "text": "Com obtenim les dades?\n\nConnexió amb la API\nCal connectarnos a la API del geoportal per obtenir les dades que ens interessen. Descarregarem en format .json, que R llegirà com llista. Finalment apilarem totes les observacions en una taula.\nEl geoportal ofereix múltiples APIs que donen accés a diferent informació (Servicios REST). Estem interessats en l’evolució dels preus de cada producte així que utilitzem la següent estructura:\nPart comú: Sempre serà la mateixa\nhttps://sedeaplicaciones.minetur.gob.es/ServiciosRESTCarburantes/PreciosCarburantes/\nPart Específica: Escollirem i parametritzarem en funció de l’informació que volem\nEstacionesTerrestresHist/FiltroProvinciaProducto/{FECHA}/{IDPROVINCIA}/{IDPRODUCTO}\n\n\nExemple en R\nUtilitzarem les següents llibreries d’R:\n\nsuppressWarnings(suppressMessages({\n  library(dplyr)\n  library(purrr)\n  library(httr2)\n}))\n\nEstem interessats en el preu de la gasolina 95 E5. Ens centrem en la província de Barcelona i volem l’informació del dia anterior. Els productes i províncies tenen codis associats, codificarem la data en format dd-mm-yy:\n\ndata &lt;- format(Sys.Date() - 1, \"%d-%m-%Y\")\nproducte &lt;- \"01\"\nprovincies &lt;- set_names(\n  c(\"08\", \"17\", \"25\", \"43\"), \n  c(\"barcelona\", \"girona\", \"lleida\", \"tarragona\")\n)\n\nConstruim l’url per cada província:\n\nbase_url &lt;- provincies %&gt;% \n  map(\\(prov) paste0(\n    \"https://sedeaplicaciones.minetur.gob.es/\",\n    \"ServiciosRESTCarburantes/PreciosCarburantes/\",\n    \"EstacionesTerrestresHist/FiltroProvinciaProducto/\",\n    data, \"/\", prov, \"/\", producte\n))\n\nDemanem l’informació, la convertim en llista i l’apilem en una taula per cada província:\n\nresponse &lt;- map(base_url, \\(url) req_perform(request(url)))\n\ntbl &lt;- response %&gt;% \n  map(\\(resp){\n    resp_body_json(resp)[[\"ListaEESSPrecio\"]] %&gt;% \n      map(\\(json) as_tibble(list_flatten(json))) %&gt;% \n      bind_rows() %&gt;% \n      mutate(PrecioProducto = as.numeric(sub(\",\", \".\", PrecioProducto)))\n  })\n\nFem una ullada als preus:\n\nwith(list_c(tbl), boxplot(PrecioProducto ~ Provincia, xlab = \"\", ylab = \"\"))\n\n\n\n\n\n\n\n\n\nhist(list_c(tbl)[[\"PrecioProducto\"]], breaks = 30, main = \"\", xlab = \"\", ylab = \"\")"
+  },
+  {
+    "objectID": "notes/ca/geoportal_api/index.html#més-enllà",
+    "href": "notes/ca/geoportal_api/index.html#més-enllà",
+    "title": "Preus a les gasolineres d’Espanya",
+    "section": "Més enllà",
+    "text": "Més enllà\n\nMapa de preus de gasolineres"
+  },
+  {
+    "objectID": "about-ca.html",
+    "href": "about-ca.html",
+    "title": "Ferran Garcia",
+    "section": "",
+    "text": "English  Català  Español\n\n\nSóc un estadístic i economista orientat a resultats, amb actitud proactiva i ganes de seguir aprenent. M’especialitzo en analitzar i modelitzar dades per extreure informació d’interès i comunicar-la.\n\nEducation: UB, UPC, UM, US (econ and stats)\nExperience: 2 years uni and 1 year intern\nProjects: web scrapping, app development, modelling"
+  },
+  {
+    "objectID": "about-es.html",
+    "href": "about-es.html",
+    "title": "Ferran Garcia",
+    "section": "",
+    "text": "English  Català  Español\n\n\nSoy un estadístico y economista orientado a resultados, con actitud proactiva y ganas de seguir aprendiendo. Me especializo en analizar y modelizar datos para extraer información de interés y comunicarla.\n\nEducation: UB, UPC, UM, US (econ and stats)\nExperience: 2 years uni and 1 year intern\nProjects: web scrapping, app development, modelling"
+  },
+  {
+    "objectID": "about-en.html",
+    "href": "about-en.html",
+    "title": "Ferran Garcia",
+    "section": "",
+    "text": "English  Català  Español\n\n\nI am a results-driven statistician and economist with a curious mindset and proactive approach, focused on transforming complex data into actionable insights and communicating them effectively to a broad audience.\n\nEducation: UB, UPC, UM, US (econ and stats)\nExperience: 2 years uni and 1 year intern\nProjects: web scrapping, app development, modelling"
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Ferran Garcia",
+    "section": "",
+    "text": "Aenean placerat luctus tortor vitae molestie. Nulla at aliquet nulla. Sed efficitur tellus orci, sed fringilla lectus laoreet eget. Vivamus maximus quam sit amet arcu dignissim, sed accumsan massa ullamcorper. Sed iaculis tincidunt feugiat. Nulla in est at nunc ultricies dictum ut vitae nunc. Aenean convallis vel diam at malesuada. Suspendisse arcu libero, vehicula tempus ultrices a, placerat sit amet tortor. Sed dictum id nulla commodo mattis. Aliquam mollis, nunc eu tristique faucibus, purus lacus tincidunt nulla, ac pretium lorem nunc ut enim. Curabitur eget mattis nisl, vitae sodales augue. Nam felis massa, bibendum sit amet nulla vel, vulputate rutrum lacus. Aenean convallis odio pharetra nulla mattis consequat.\n\n\n\n\n\n\nPreus a les gasolineres d’Espanya\n\n\nQuinen preus fixen les gasolineres per cada producte al llarg del temps?\n\n\n\n\n\nFeb 11, 2024\n\n\n\n\n\n\nNo matching items"
+  }
+]
