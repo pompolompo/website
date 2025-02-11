@@ -1,0 +1,31 @@
+---
+title: "Ferran Garcia"
+subtitle: "Estadístico & Economista"
+comments: false
+image: ferran.jpg
+about:
+  template: trestles
+  links:
+    - icon: github
+      text: GitHub
+      href: https://github.com/pompolompo
+    - icon: linkedin
+      text: LinkedIn
+      href: https://www.linkedin.com/in/ferrangarcialopez
+---
+
+<center>
+
+::: {.btn-group role="group" aria-label="About"}
+<a href="about-en.html"> <button type="button" class="btn btn-primary me-md-2 btn-sm">English</button></a> <a href="about-ca.html"> <button type="button" class="btn btn-primary me-md-2 btn-sm">Català</button></a> <a href="about-es.html"> <button type="button" class="btn btn-primary me-md-2 btn-sm">Español</button></a>
+:::
+
+</center>
+
+Soy un estadístico y economista orientado a resultados, con actitud proactiva y ganas de seguir aprendiendo. Me especializo en analizar y modelizar datos para extraer información de interés y comunicarla.
+
+- **Education:** UB, UPC, UM, US (econ and stats)
+
+- **Experience:** 2 years uni and 1 year intern
+
+- **Projects:** web scrapping, app development, modelling

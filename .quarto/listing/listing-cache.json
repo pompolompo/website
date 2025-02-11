@@ -1,0 +1,13 @@
+{
+  "listingMap": {
+    "projects/index.qmd": [
+      "projects.yml"
+    ],
+    "index.qmd": [
+      "{tutorials, notes, posts}/{ca, es, en}/*/index.qmd",
+      "{notes, posts}/{ca, es, en}/*/index.qmd",
+      "notes/ca, es, en}/*/index.qmd",
+      "notes/{ca, es, en}/*/index.qmd"
+    ]
+  }
+}

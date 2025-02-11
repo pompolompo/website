@@ -1,0 +1,19 @@
+---
+title: "Ferran Garcia"
+subtitle: "Statistician & Economist"
+listing:
+  - id: notes
+    contents: "notes/{ca, es, en}/*/index.qmd"
+    fields: [date, title, subtitle]
+    sort: "date desc"
+    sort-ui: false
+    filter-ui: false
+    page-size: 6
+---
+
+{{<lipsum 1>}}
+
+---
+
+::: {#notes}
+:::
