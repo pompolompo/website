@@ -6,9 +6,8 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2024-02-11">
 
-<title>Preus a les gasolineres d’Espanya – Ferran Garcia</title>
+<title>Evolution of gas prices in Llinars del Vallès and Cardedeu – Ferran Garcia</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -87,15 +86,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 }</script>
 
 
-<meta property="og:title" content="Preus a les gasolineres d’Espanya – Ferran Garcia">
-<meta property="og:description" content="Quinen preus fixen les gasolineres per cada producte al llarg del temps?">
-<meta property="og:image" content="https://pompolompo.github.io/website/notes/ca/geoportal_api/gas_price.png">
+<meta property="og:title" content="Evolution of gas prices in Llinars del Vallès and Cardedeu – Ferran Garcia">
+<meta property="og:description" content="">
+<meta property="og:image" content="https://pompolompo.github.io/website/notes/en/a/index_files/figure-html/plot-1.png">
 <meta property="og:site_name" content="Ferran Garcia">
-<meta property="og:image:height" content="448">
-<meta property="og:image:width" content="948">
+<meta property="og:image:height" content="960">
+<meta property="og:image:width" content="1344">
 </head>
 
-<body class="nav-fixed">
+<body class="nav-fixed fullcontent">
 
 <div id="quarto-search-results"></div>
   <header id="quarto-header" class="headroom fixed-top">
@@ -141,28 +140,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        <nav id="TOC" role="doc-toc" class="toc-active">
-    <h2 id="toc-title">On this page</h2>
-   
-  <ul>
-  <li><a href="#quina-informació-hi-ha-al-geoportal" id="toc-quina-informació-hi-ha-al-geoportal" class="nav-link active" data-scroll-target="#quina-informació-hi-ha-al-geoportal">Quina informació hi ha al Geoportal?</a></li>
-  <li><a href="#com-obtenim-les-dades" id="toc-com-obtenim-les-dades" class="nav-link" data-scroll-target="#com-obtenim-les-dades">Com obtenim les dades?</a>
-  <ul class="collapse">
-  <li><a href="#connexió-amb-la-api" id="toc-connexió-amb-la-api" class="nav-link" data-scroll-target="#connexió-amb-la-api">Connexió amb la API</a></li>
-  <li><a href="#exemple-en-r" id="toc-exemple-en-r" class="nav-link" data-scroll-target="#exemple-en-r">Exemple en R</a></li>
-  </ul></li>
-  <li><a href="#més-enllà" id="toc-més-enllà" class="nav-link" data-scroll-target="#més-enllà">Més enllà</a></li>
-  </ul>
-</nav>
-    </div>
+    
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Preus a les gasolineres d’Espanya</h1>
-<p class="subtitle lead">Quinen preus fixen les gasolineres per cada producte al llarg del temps?</p>
+<h1 class="title">Evolution of gas prices in Llinars del Vallès and Cardedeu</h1>
 </div>
 
 
@@ -170,12 +154,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="quarto-title-meta">
 
     
-    <div>
-    <div class="quarto-title-meta-heading">Published</div>
-    <div class="quarto-title-meta-contents">
-      <p class="date">February 11, 2024</p>
-    </div>
-  </div>
   
     
   </div>
@@ -185,104 +163,113 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<section id="quina-informació-hi-ha-al-geoportal" class="level2">
-<h2 class="anchored" data-anchor-id="quina-informació-hi-ha-al-geoportal">Quina informació hi ha al <a href="https://geoportalgasolineras.es/geoportal-instalaciones">Geoportal</a>?</h2>
-<ul>
-<li>On s’ón’ubiquen els punts de recàrrega?</li>
-<li>Quin carburant ofereixen?</li>
-<li>Quin preu cobren? Com canvia al llarg del temps?</li>
-<li>Quin horari obre?</li>
-<li>És d’autoservei?</li>
-<li>És una cooperativa?</li>
-<li>Qui n’és el propietari?</li>
-<li>Existeixen portals similars a Europa</li>
-</ul>
-</section>
-<section id="com-obtenim-les-dades" class="level2">
-<h2 class="anchored" data-anchor-id="com-obtenim-les-dades">Com obtenim les dades?</h2>
-<section id="connexió-amb-la-api" class="level3">
-<h3 class="anchored" data-anchor-id="connexió-amb-la-api">Connexió amb la API</h3>
-<p>Cal connectarnos a la API del geoportal per obtenir les dades que ens interessen. Descarregarem en format <code>.json</code>, que <code>R</code> llegirà com llista. Finalment apilarem totes les observacions en una taula.</p>
-<p>El geoportal ofereix múltiples APIs que donen accés a diferent informació (<a href="https://geoportalgasolineras.es/geoportal-instalaciones/DescargarFicheros">Servicios REST</a>). Estem interessats en l’evolució dels preus de cada producte així que utilitzem la següent estructura:</p>
-<p><strong>Part comú:</strong> Sempre serà la mateixa</p>
-<p><code>https://sedeaplicaciones.minetur.gob.es/ServiciosRESTCarburantes/PreciosCarburantes/</code></p>
-<p><strong>Part Específica:</strong> Escollirem i parametritzarem en funció de l’informació que volem</p>
-<p><code>EstacionesTerrestresHist/FiltroProvinciaProducto/{FECHA}/{IDPROVINCIA}/{IDPRODUCTO}</code></p>
-</section>
-<section id="exemple-en-r" class="level3">
-<h3 class="anchored" data-anchor-id="exemple-en-r">Exemple en R</h3>
-<p>Utilitzarem les següents llibreries d’<code>R</code>:</p>
+<p>Use this <code>R</code> libraries:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">suppressWarnings</span>(<span class="fu">suppressMessages</span>({</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">library</span>(dplyr)</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">library</span>(purrr)</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">library</span>(httr2)</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>}))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(httr2)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(purrr)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyr)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>Estem interessats en el preu de la gasolina 95 E5. Ens centrem en la província de Barcelona i volem l’informació del dia anterior. Els productes i províncies tenen codis associats, codificarem la data en format <code>dd-mm-yy</code>:</p>
+<p>Define function to retrieve information:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">format</span>(<span class="fu">Sys.Date</span>() <span class="sc">-</span> <span class="dv">1</span>, <span class="st">"%d-%m-%Y"</span>)</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>producte <span class="ot">&lt;-</span> <span class="st">"01"</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>provincies <span class="ot">&lt;-</span> <span class="fu">set_names</span>(</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">c</span>(<span class="st">"08"</span>, <span class="st">"17"</span>, <span class="st">"25"</span>, <span class="st">"43"</span>), </span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">c</span>(<span class="st">"barcelona"</span>, <span class="st">"girona"</span>, <span class="st">"lleida"</span>, <span class="st">"tarragona"</span>)</span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>get_gas <span class="ot">&lt;-</span> <span class="cf">function</span>(filtro, args) {</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">paste0</span>(</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"https://sedeaplicaciones.minetur.gob.es"</span>,</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"/ServiciosRESTCarburantes/PreciosCarburantes/EstacionesTerrestresHist/"</span>,</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    filtro, <span class="fu">paste</span>(args, <span class="at">collapse =</span> <span class="st">"/"</span>)</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">request</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">req_perform</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">resp_body_json</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    .[[<span class="st">"ListaEESSPrecio"</span>]] <span class="sc">%&gt;%</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">map</span>(\(x) <span class="fu">as_tibble</span>(<span class="fu">list_flatten</span>(x))) <span class="sc">%&gt;%</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">bind_rows</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>    janitor<span class="sc">::</span><span class="fu">clean_names</span>()</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>Construim l’url per cada província:</p>
+<p>Retrieve yesterday’s gas prices in catalan provinces:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>base_url <span class="ot">&lt;-</span> provincies <span class="sc">%&gt;%</span> </span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">map</span>(\(prov) <span class="fu">paste0</span>(</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"https://sedeaplicaciones.minetur.gob.es/"</span>,</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"ServiciosRESTCarburantes/PreciosCarburantes/"</span>,</span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">"EstacionesTerrestresHist/FiltroProvinciaProducto/"</span>,</span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    data, <span class="st">"/"</span>, prov, <span class="st">"/"</span>, producte</span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>prov <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"08"</span>, <span class="st">"43"</span>, <span class="st">"17"</span>, <span class="st">"25"</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>gCat <span class="ot">&lt;-</span> <span class="fu">map</span>(prov, \(x) <span class="fu">get_gas</span>(</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">filtro =</span> <span class="st">"FiltroProvincia/"</span>,</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">args =</span> <span class="fu">c</span>(<span class="fu">format</span>(<span class="fu">Sys.Date</span>() <span class="sc">-</span> <span class="dv">1</span>, <span class="st">"%d-%m-%Y"</span>), x)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>)) <span class="sc">%&gt;%</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">bind_rows</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">precio =</span> <span class="fu">as.numeric</span>(<span class="fu">gsub</span>(<span class="st">","</span>, <span class="st">"."</span>, precio_gasolina_95_e5)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>Demanem l’informació, la convertim en llista i l’apilem en una taula per cada província:</p>
+<p>Summary of gas stations and price statistics per province:<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a></p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>response <span class="ot">&lt;-</span> <span class="fu">map</span>(base_url, \(url) <span class="fu">req_perform</span>(<span class="fu">request</span>(url)))</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>tbl <span class="ot">&lt;-</span> response <span class="sc">%&gt;%</span> </span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">map</span>(\(resp){</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">resp_body_json</span>(resp)[[<span class="st">"ListaEESSPrecio"</span>]] <span class="sc">%&gt;%</span> </span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>      <span class="fu">map</span>(\(json) <span class="fu">as_tibble</span>(<span class="fu">list_flatten</span>(json))) <span class="sc">%&gt;%</span> </span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>      <span class="fu">bind_rows</span>() <span class="sc">%&gt;%</span> </span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>      <span class="fu">mutate</span>(<span class="at">PrecioProducto =</span> <span class="fu">as.numeric</span>(<span class="fu">sub</span>(<span class="st">","</span>, <span class="st">"."</span>, PrecioProducto)))</span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  })</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>gCat <span class="sc">%&gt;%</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">n =</span> <span class="fu">n</span>(),</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">mean =</span> <span class="fu">mean</span>(precio, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span> <span class="fu">round</span>(<span class="dv">3</span>),</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">median =</span> <span class="fu">median</span>(precio, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span> <span class="fu">round</span>(<span class="dv">3</span>),</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">sd =</span> <span class="fu">sd</span>(precio, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span> <span class="fu">round</span>(<span class="dv">3</span>),</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">.by =</span> provincia</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 4 × 5
+  provincia     n  mean median    sd
+  &lt;chr&gt;     &lt;int&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;
+1 BARCELONA   800  1.58   1.61 0.109
+2 TARRAGONA   230  1.58   1.63 0.108
+3 GIRONA      268  1.58   1.62 0.086
+4 LLEIDA      186  1.54   1.58 0.099</code></pre>
 </div>
-<p>Fem una ullada als preus:</p>
+</div>
+<p>We are interest in historic prices from a certain province, for instance Cadiz whose code is 11. Considering daily observations for all Cadiz gas stations, a horizon of one year seems reasonable.</p>
+<p>Declare province, product, horizon and API filter parameters:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">with</span>(<span class="fu">list_c</span>(tbl), <span class="fu">boxplot</span>(PrecioProducto <span class="sc">~</span> Provincia, <span class="at">xlab =</span> <span class="st">""</span>, <span class="at">ylab =</span> <span class="st">""</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>prov <span class="ot">&lt;-</span> <span class="st">"11"</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>prod <span class="ot">&lt;-</span> <span class="st">"01"</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>h <span class="ot">&lt;-</span> <span class="dv">366</span> <span class="sc">/</span> <span class="dv">12</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>fil <span class="ot">&lt;-</span> <span class="st">"FiltroProvinciaProducto/"</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>cadiz <span class="ot">&lt;-</span> <span class="fu">map</span>(<span class="fu">format</span>(<span class="fu">Sys.Date</span>() <span class="sc">-</span> <span class="dv">1</span><span class="sc">:</span>h, <span class="st">"%d-%m-%Y"</span>), \(x){</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">get_gas</span>(<span class="at">filtro =</span> fil, <span class="at">args =</span> <span class="fu">c</span>(x, prov, prod)) <span class="sc">%&gt;%</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">fecha =</span> <span class="fu">as.Date</span>(x))</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>}) <span class="sc">%&gt;%</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">bind_rows</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">precio =</span> <span class="fu">as.numeric</span>(<span class="fu">gsub</span>(<span class="st">","</span>, <span class="st">"."</span>, precio_producto)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>gCat <span class="sc">%&gt;%</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(rotulo <span class="sc">%in%</span> (</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarise</span>(gCat, <span class="at">.by =</span> rotulo, <span class="at">n =</span> <span class="fu">n</span>()) <span class="sc">%&gt;%</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>      <span class="fu">arrange</span>(n) <span class="sc">%&gt;%</span> <span class="fu">pull</span>(rotulo) <span class="sc">%&gt;%</span> <span class="fu">tail</span>(<span class="dv">10</span>)</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  )) <span class="sc">%&gt;%</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">drop_na</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(rotulo, precio) <span class="sc">%&gt;%</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(rotulo, precio)) <span class="sc">+</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>() <span class="sc">+</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>() <span class="sc">+</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.title =</span> <span class="fu">element_blank</span>()</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Gas prices in Catalonia, 2025"</span>,</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"Euros per litre of gas 95 E5 (10 largest providers)"</span></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="index_files/figure-html/plot-1-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="index_files/figure-html/plot-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
 </div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(<span class="fu">list_c</span>(tbl)[[<span class="st">"PrecioProducto"</span>]], <span class="at">breaks =</span> <span class="dv">30</span>, <span class="at">main =</span> <span class="st">""</span>, <span class="at">xlab =</span> <span class="st">""</span>, <span class="at">ylab =</span> <span class="st">""</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="index_files/figure-html/plot-2-1.png" class="img-fluid figure-img" width="672"></p>
-</figure>
-</div>
-</div>
-</div>
-</section>
-</section>
-<section id="més-enllà" class="level2">
-<h2 class="anchored" data-anchor-id="més-enllà">Més enllà</h2>
-<ul>
-<li>Mapa de preus de gasolineres</li>
-</ul>
 
 
-</section>
 
-</main> <!-- /main -->
+
+<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes"><h2 class="anchored quarto-appendix-heading">Footnotes</h2>
+
+<ol>
+<li id="fn1"><p>Considering 95 gas - E5<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
   const toggleBodyColorMode = (bsSheetEl) => {

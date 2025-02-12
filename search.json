@@ -1,5 +1,40 @@
 [
   {
+    "objectID": "about-ca.html",
+    "href": "about-ca.html",
+    "title": "Ferran Garcia",
+    "section": "",
+    "text": "English  Català  Español\n\n\nSóc un estadístic i economista orientat a resultats, amb actitud proactiva i ganes de seguir aprenent. M’especialitzo en analitzar i modelitzar dades per extreure informació d’interès i comunicar-la.\n\nEducation: UB, UPC, UM, US (econ and stats)\nExperience: 2 years uni and 1 year intern\nProjects: web scrapping, app development, modelling"
+  },
+  {
+    "objectID": "about-en.html",
+    "href": "about-en.html",
+    "title": "Ferran Garcia",
+    "section": "",
+    "text": "English  Català  Español\n\n\nI am a results-driven statistician and economist with a curious mindset and proactive approach, focused on transforming complex data into actionable insights and communicating them effectively to a broad audience.\n\nEducation: UB, UPC, UM, US (econ and stats)\nExperience: 2 years uni and 1 year intern\nProjects: web scrapping, app development, modelling"
+  },
+  {
+    "objectID": "notes/en/a/index.html",
+    "href": "notes/en/a/index.html",
+    "title": "Evolution of gas prices in Llinars del Vallès and Cardedeu",
+    "section": "",
+    "text": "Use this R libraries:\nlibrary(httr2)\nlibrary(dplyr)\nlibrary(purrr)\nlibrary(tidyr)\nlibrary(ggplot2)\nDefine function to retrieve information:\nget_gas &lt;- function(filtro, args) {\n  paste0(\n    \"https://sedeaplicaciones.minetur.gob.es\",\n    \"/ServiciosRESTCarburantes/PreciosCarburantes/EstacionesTerrestresHist/\",\n    filtro, paste(args, collapse = \"/\")\n  ) %&gt;%\n    request() %&gt;%\n    req_perform() %&gt;%\n    resp_body_json() %&gt;%\n    .[[\"ListaEESSPrecio\"]] %&gt;%\n    map(\\(x) as_tibble(list_flatten(x))) %&gt;%\n    bind_rows() %&gt;%\n    janitor::clean_names()\n}\nRetrieve yesterday’s gas prices in catalan provinces:\nprov &lt;- c(\"08\", \"43\", \"17\", \"25\")\n\ngCat &lt;- map(prov, \\(x) get_gas(\n  filtro = \"FiltroProvincia/\",\n  args = c(format(Sys.Date() - 1, \"%d-%m-%Y\"), x)\n)) %&gt;%\n  bind_rows() %&gt;%\n  mutate(precio = as.numeric(gsub(\",\", \".\", precio_gasolina_95_e5)))\nSummary of gas stations and price statistics per province:1\ngCat %&gt;%\n  summarise(\n    n = n(),\n    mean = mean(precio, na.rm = TRUE) %&gt;% round(3),\n    median = median(precio, na.rm = TRUE) %&gt;% round(3),\n    sd = sd(precio, na.rm = TRUE) %&gt;% round(3),\n    .by = provincia\n  )\n\n# A tibble: 4 × 5\n  provincia     n  mean median    sd\n  &lt;chr&gt;     &lt;int&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;\n1 BARCELONA   800  1.58   1.61 0.109\n2 TARRAGONA   230  1.58   1.63 0.108\n3 GIRONA      268  1.58   1.62 0.086\n4 LLEIDA      186  1.54   1.58 0.099\nWe are interest in historic prices from a certain province, for instance Cadiz whose code is 11. Considering daily observations for all Cadiz gas stations, a horizon of one year seems reasonable.\nDeclare province, product, horizon and API filter parameters:\nprov &lt;- \"11\"\nprod &lt;- \"01\"\nh &lt;- 366 / 12\nfil &lt;- \"FiltroProvinciaProducto/\"\n\ncadiz &lt;- map(format(Sys.Date() - 1:h, \"%d-%m-%Y\"), \\(x){\n  get_gas(filtro = fil, args = c(x, prov, prod)) %&gt;%\n    mutate(fecha = as.Date(x))\n}) %&gt;%\n  bind_rows() %&gt;%\n  mutate(precio = as.numeric(gsub(\",\", \".\", precio_producto)))\ngCat %&gt;%\n  filter(rotulo %in% (\n    summarise(gCat, .by = rotulo, n = n()) %&gt;%\n      arrange(n) %&gt;% pull(rotulo) %&gt;% tail(10)\n  )) %&gt;%\n  drop_na() %&gt;%\n  select(rotulo, precio) %&gt;%\n  ggplot(aes(rotulo, precio)) +\n  geom_boxplot() +\n  theme_bw() +\n  theme(\n    axis.title = element_blank()\n  ) +\n  labs(\n    title = \"Gas prices in Catalonia, 2025\",\n    subtitle = \"Euros per litre of gas 95 E5 (10 largest providers)\"\n  )"
+  },
+  {
+    "objectID": "notes/en/a/index.html#footnotes",
+    "href": "notes/en/a/index.html#footnotes",
+    "title": "Evolution of gas prices in Llinars del Vallès and Cardedeu",
+    "section": "Footnotes",
+    "text": "Footnotes\n\n\nConsidering 95 gas - E5↩︎"
+  },
+  {
+    "objectID": "about-es.html",
+    "href": "about-es.html",
+    "title": "Ferran Garcia",
+    "section": "",
+    "text": "English  Català  Español\n\n\nSoy un estadístico y economista orientado a resultados, con actitud proactiva y ganas de seguir aprendiendo. Me especializo en analizar y modelizar datos para extraer información de interés y comunicarla.\n\nEducation: UB, UPC, UM, US (econ and stats)\nExperience: 2 years uni and 1 year intern\nProjects: web scrapping, app development, modelling"
+  },
+  {
     "objectID": "notes/ca/geoportal_api/index.html",
     "href": "notes/ca/geoportal_api/index.html",
     "title": "Preus a les gasolineres d’Espanya",
@@ -28,31 +63,10 @@
     "text": "Més enllà\n\nMapa de preus de gasolineres"
   },
   {
-    "objectID": "about-ca.html",
-    "href": "about-ca.html",
-    "title": "Ferran Garcia",
-    "section": "",
-    "text": "English  Català  Español\n\n\nSóc un estadístic i economista orientat a resultats, amb actitud proactiva i ganes de seguir aprenent. M’especialitzo en analitzar i modelitzar dades per extreure informació d’interès i comunicar-la.\n\nEducation: UB, UPC, UM, US (econ and stats)\nExperience: 2 years uni and 1 year intern\nProjects: web scrapping, app development, modelling"
-  },
-  {
-    "objectID": "about-es.html",
-    "href": "about-es.html",
-    "title": "Ferran Garcia",
-    "section": "",
-    "text": "English  Català  Español\n\n\nSoy un estadístico y economista orientado a resultados, con actitud proactiva y ganas de seguir aprendiendo. Me especializo en analizar y modelizar datos para extraer información de interés y comunicarla.\n\nEducation: UB, UPC, UM, US (econ and stats)\nExperience: 2 years uni and 1 year intern\nProjects: web scrapping, app development, modelling"
-  },
-  {
-    "objectID": "about-en.html",
-    "href": "about-en.html",
-    "title": "Ferran Garcia",
-    "section": "",
-    "text": "English  Català  Español\n\n\nI am a results-driven statistician and economist with a curious mindset and proactive approach, focused on transforming complex data into actionable insights and communicating them effectively to a broad audience.\n\nEducation: UB, UPC, UM, US (econ and stats)\nExperience: 2 years uni and 1 year intern\nProjects: web scrapping, app development, modelling"
-  },
-  {
     "objectID": "index.html",
     "href": "index.html",
     "title": "Ferran Garcia",
     "section": "",
-    "text": "Aenean placerat luctus tortor vitae molestie. Nulla at aliquet nulla. Sed efficitur tellus orci, sed fringilla lectus laoreet eget. Vivamus maximus quam sit amet arcu dignissim, sed accumsan massa ullamcorper. Sed iaculis tincidunt feugiat. Nulla in est at nunc ultricies dictum ut vitae nunc. Aenean convallis vel diam at malesuada. Suspendisse arcu libero, vehicula tempus ultrices a, placerat sit amet tortor. Sed dictum id nulla commodo mattis. Aliquam mollis, nunc eu tristique faucibus, purus lacus tincidunt nulla, ac pretium lorem nunc ut enim. Curabitur eget mattis nisl, vitae sodales augue. Nam felis massa, bibendum sit amet nulla vel, vulputate rutrum lacus. Aenean convallis odio pharetra nulla mattis consequat.\n\n\n\n\n\n\nPreus a les gasolineres d’Espanya\n\n\nQuinen preus fixen les gasolineres per cada producte al llarg del temps?\n\n\n\n\n\nFeb 11, 2024\n\n\n\n\n\n\nNo matching items"
+    "text": "Duis ornare ex ac iaculis pretium. Maecenas sagittis odio id erat pharetra, sit amet consectetur quam sollicitudin. Vivamus pharetra quam purus, nec sagittis risus pretium at. Nullam feugiat, turpis ac accumsan interdum, sem tellus blandit neque, id vulputate diam quam semper nisl. Donec sit amet enim at neque porttitor aliquet. Phasellus facilisis nulla eget placerat eleifend. Vestibulum non egestas eros, eget lobortis ipsum. Nulla rutrum massa eget enim aliquam, id porttitor erat luctus. Nunc sagittis quis eros eu sagittis. Pellentesque dictum, erat at pellentesque sollicitudin, justo augue pulvinar metus, quis rutrum est mi nec felis. Vestibulum efficitur mi lorem, at elementum purus tincidunt a. Aliquam finibus enim magna, vitae pellentesque erat faucibus at. Nulla mauris tellus, imperdiet id lobortis et, dignissim condimentum ipsum. Morbi nulla orci, varius at aliquet sed, facilisis id tortor. Donec ut urna nisi.\n\n\n\n\n\n\nPreus a les gasolineres d’Espanya\n\n\nQuinen preus fixen les gasolineres per cada producte al llarg del temps?\n\n\n\n\n\nFeb 11, 2024\n\n\n\n\n\n\nNo matching items"
   }
 ]
