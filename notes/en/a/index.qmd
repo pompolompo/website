@@ -1,0 +1,104 @@
+---
+title: "Evolution of gas prices in Llinars del Vallès and Cardedeu"
+format: html
+---
+
+```{r settings}
+#| echo: FALSE
+
+knitr::opts_chunk$set(warning = F, echo = T, message = F)
+```
+
+Use this `R` libraries:
+
+```{r libs}
+library(httr2)
+library(dplyr)
+library(purrr)
+library(tidyr)
+library(ggplot2)
+```
+
+Define function to retrieve information:
+
+```{r func}
+get_gas <- function(filtro, args) {
+  paste0(
+    "https://sedeaplicaciones.minetur.gob.es",
+    "/ServiciosRESTCarburantes/PreciosCarburantes/EstacionesTerrestresHist/",
+    filtro, paste(args, collapse = "/")
+  ) %>%
+    request() %>%
+    req_perform() %>%
+    resp_body_json() %>%
+    .[["ListaEESSPrecio"]] %>%
+    map(\(x) as_tibble(list_flatten(x))) %>%
+    bind_rows() %>%
+    janitor::clean_names()
+}
+```
+
+Retrieve yesterday's gas prices in catalan provinces:
+
+```{r cat_gas}
+prov <- c("08", "43", "17", "25")
+
+gCat <- map(prov, \(x) get_gas(
+  filtro = "FiltroProvincia/",
+  args = c(format(Sys.Date() - 1, "%d-%m-%Y"), x)
+)) %>%
+  bind_rows() %>%
+  mutate(precio = as.numeric(gsub(",", ".", precio_gasolina_95_e5)))
+```
+
+Summary of gas stations and price statistics per province:^[Considering 95 gas - E5]
+
+```{r n_prov}
+gCat %>%
+  summarise(
+    n = n(),
+    mean = mean(precio, na.rm = TRUE) %>% round(3),
+    median = median(precio, na.rm = TRUE) %>% round(3),
+    sd = sd(precio, na.rm = TRUE) %>% round(3),
+    .by = provincia
+  )
+```
+
+We are interest in historic prices from a certain province, for instance Cadiz whose code is 11. Considering daily observations for all Cadiz gas stations, a horizon of one year seems reasonable.
+
+Declare province, product, horizon and API filter parameters:
+
+```{r time-prov}
+prov <- "11"
+prod <- "01"
+h <- 366 / 12
+fil <- "FiltroProvinciaProducto/"
+
+cadiz <- map(format(Sys.Date() - 1:h, "%d-%m-%Y"), \(x){
+  get_gas(filtro = fil, args = c(x, prov, prod)) %>%
+    mutate(fecha = as.Date(x))
+}) %>%
+  bind_rows() %>%
+  mutate(precio = as.numeric(gsub(",", ".", precio_producto)))
+```
+
+```{r plot}
+gCat %>%
+  filter(rotulo %in% (
+    summarise(gCat, .by = rotulo, n = n()) %>%
+      arrange(n) %>% pull(rotulo) %>% tail(10)
+  )) %>%
+  drop_na() %>%
+  select(rotulo, precio) %>%
+  ggplot(aes(rotulo, precio)) +
+  geom_boxplot() +
+  theme_bw() +
+  theme(
+    axis.title = element_blank()
+  ) +
+  labs(
+    title = "Gas prices in Catalonia, 2025",
+    subtitle = "Euros per litre of gas 95 E5 (10 largest providers)"
+  )
+```
+
