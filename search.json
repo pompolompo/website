@@ -1,38 +1,17 @@
 [
   {
-    "objectID": "about-ca.html",
-    "href": "about-ca.html",
-    "title": "Ferran Garcia",
-    "section": "",
-    "text": "English  Català  Español\n\n\nSóc un estadístic i economista orientat a resultats, amb actitud proactiva i ganes de seguir aprenent. M’especialitzo en analitzar i modelitzar dades per extreure informació d’interès i comunicar-la.\n\nEducation: UB, UPC, UM, US (econ and stats)\nExperience: 2 years uni and 1 year intern\nProjects: web scrapping, app development, modelling"
-  },
-  {
-    "objectID": "about-en.html",
-    "href": "about-en.html",
-    "title": "Ferran Garcia",
-    "section": "",
-    "text": "English  Català  Español\n\n\nI am a results-driven statistician and economist with a curious mindset and proactive approach, focused on transforming complex data into actionable insights and communicating them effectively to a broad audience.\n\nEducation: UB, UPC, UM, US (econ and stats)\nExperience: 2 years uni and 1 year intern\nProjects: web scrapping, app development, modelling"
-  },
-  {
-    "objectID": "notes/en/a/index.html",
-    "href": "notes/en/a/index.html",
-    "title": "Evolution of gas prices in Llinars del Vallès and Cardedeu",
-    "section": "",
-    "text": "Use this R libraries:\nlibrary(httr2)\nlibrary(dplyr)\nlibrary(purrr)\nlibrary(tidyr)\nlibrary(ggplot2)\nDefine function to retrieve information:\nget_gas &lt;- function(filtro, args) {\n  paste0(\n    \"https://sedeaplicaciones.minetur.gob.es\",\n    \"/ServiciosRESTCarburantes/PreciosCarburantes/EstacionesTerrestresHist/\",\n    filtro, paste(args, collapse = \"/\")\n  ) %&gt;%\n    request() %&gt;%\n    req_perform() %&gt;%\n    resp_body_json() %&gt;%\n    .[[\"ListaEESSPrecio\"]] %&gt;%\n    map(\\(x) as_tibble(list_flatten(x))) %&gt;%\n    bind_rows() %&gt;%\n    janitor::clean_names()\n}\nRetrieve yesterday’s gas prices in catalan provinces:\nprov &lt;- c(\"08\", \"43\", \"17\", \"25\")\n\ngCat &lt;- map(prov, \\(x) get_gas(\n  filtro = \"FiltroProvincia/\",\n  args = c(format(Sys.Date() - 1, \"%d-%m-%Y\"), x)\n)) %&gt;%\n  bind_rows() %&gt;%\n  mutate(precio = as.numeric(gsub(\",\", \".\", precio_gasolina_95_e5)))\nSummary of gas stations and price statistics per province:1\ngCat %&gt;%\n  summarise(\n    n = n(),\n    mean = mean(precio, na.rm = TRUE) %&gt;% round(3),\n    median = median(precio, na.rm = TRUE) %&gt;% round(3),\n    sd = sd(precio, na.rm = TRUE) %&gt;% round(3),\n    .by = provincia\n  )\n\n# A tibble: 4 × 5\n  provincia     n  mean median    sd\n  &lt;chr&gt;     &lt;int&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;\n1 BARCELONA   799  1.58   1.62 0.109\n2 TARRAGONA   229  1.58   1.63 0.109\n3 GIRONA      263  1.59   1.63 0.091\n4 LLEIDA      181  1.54   1.57 0.095\nWe are interest in historic prices from a certain province, for instance Cadiz whose code is 11. Considering daily observations for all Cadiz gas stations, a horizon of one year seems reasonable.\nDeclare province, product, horizon and API filter parameters:\nprov &lt;- \"11\"\nprod &lt;- \"01\"\nh &lt;- 366 / 12\nfil &lt;- \"FiltroProvinciaProducto/\"\n\ncadiz &lt;- map(format(Sys.Date() - 1:h, \"%d-%m-%Y\"), \\(x){\n  get_gas(filtro = fil, args = c(x, prov, prod)) %&gt;%\n    mutate(fecha = as.Date(x))\n}) %&gt;%\n  bind_rows() %&gt;%\n  mutate(precio = as.numeric(gsub(\",\", \".\", precio_producto)))\ngCat %&gt;%\n  filter(rotulo %in% (\n    summarise(gCat, .by = rotulo, n = n()) %&gt;%\n      arrange(n) %&gt;% pull(rotulo) %&gt;% tail(10)\n  )) %&gt;%\n  drop_na() %&gt;%\n  select(rotulo, precio) %&gt;%\n  ggplot(aes(rotulo, precio)) +\n  geom_boxplot() +\n  theme_bw() +\n  theme(\n    axis.title = element_blank()\n  ) +\n  labs(\n    title = \"Gas prices in Catalonia, 2025\",\n    subtitle = \"Euros per litre of gas 95 E5 (10 largest providers)\"\n  )"
-  },
-  {
-    "objectID": "notes/en/a/index.html#footnotes",
-    "href": "notes/en/a/index.html#footnotes",
-    "title": "Evolution of gas prices in Llinars del Vallès and Cardedeu",
-    "section": "Footnotes",
-    "text": "Footnotes\n\n\nConsidering 95 gas - E5↩︎"
-  },
-  {
     "objectID": "about-es.html",
     "href": "about-es.html",
     "title": "Ferran Garcia",
     "section": "",
     "text": "English  Català  Español\n\n\nSoy un estadístico y economista orientado a resultados, con actitud proactiva y ganas de seguir aprendiendo. Me especializo en analizar y modelizar datos para extraer información de interés y comunicarla.\n\nEducation: UB, UPC, UM, US (econ and stats)\nExperience: 2 years uni and 1 year intern\nProjects: web scrapping, app development, modelling"
+  },
+  {
+    "objectID": "about-ca.html",
+    "href": "about-ca.html",
+    "title": "Ferran Garcia",
+    "section": "",
+    "text": "English  Català  Español\n\n\nSóc un estadístic i economista orientat a resultats, amb actitud proactiva i ganes de seguir aprenent. M’especialitzo en analitzar i modelitzar dades per extreure informació d’interès i comunicar-la.\n\nEducation: UB, UPC, UM, US (econ and stats)\nExperience: 2 years uni and 1 year intern\nProjects: web scrapping, app development, modelling"
   },
   {
     "objectID": "notes/ca/geoportal_api/index.html",
@@ -67,6 +46,27 @@
     "href": "index.html",
     "title": "Ferran Garcia",
     "section": "",
-    "text": "Nulla eget cursus ipsum. Vivamus porttitor leo diam, sed volutpat lectus facilisis sit amet. Maecenas et pulvinar metus. Ut at dignissim tellus. In in tincidunt elit. Etiam vulputate lobortis arcu, vel faucibus leo lobortis ac. Aliquam erat volutpat. In interdum orci ac est euismod euismod. Nunc eleifend tristique risus, at lacinia odio commodo in. Sed aliquet ligula odio, sed tempor neque ultricies sit amet.\n\n\n\n\n\n\nPreus a les gasolineres d’Espanya\n\n\nQuinen preus fixen les gasolineres per cada producte al llarg del temps?\n\n\n\n\n\nFeb 11, 2024\n\n\n\n\n\n\nNo matching items"
+    "text": "Praesent ornare dolor turpis, sed tincidunt nisl pretium eget. Curabitur sed iaculis ex, vitae tristique sapien. Quisque nec ex dolor. Quisque ut nisl a libero egestas molestie. Nulla vel porta nulla. Phasellus id pretium arcu. Etiam sed mi pellentesque nibh scelerisque elementum sed at urna. Ut congue molestie nibh, sit amet pretium ligula consectetur eu. Integer consectetur augue justo, at placerat erat posuere at. Ut elementum urna lectus, vitae bibendum neque pulvinar quis. Suspendisse vulputate cursus eros id maximus. Duis pulvinar facilisis massa, et condimentum est viverra congue. Curabitur ornare convallis nisl. Morbi dictum scelerisque turpis quis pellentesque. Etiam lectus risus, luctus lobortis risus ut, rutrum vulputate justo. Nulla facilisi.\n\n\n\n\n\n\nPreus a les gasolineres d’Espanya\n\n\nQuinen preus fixen les gasolineres per cada producte al llarg del temps?\n\n\n\n\n\nFeb 11, 2024\n\n\n\n\n\n\nNo matching items"
+  },
+  {
+    "objectID": "notes/en/a/index.html",
+    "href": "notes/en/a/index.html",
+    "title": "Evolution of gas prices in Llinars del Vallès and Cardedeu",
+    "section": "",
+    "text": "Use this R libraries:\nlibrary(httr2)\nlibrary(dplyr)\nlibrary(purrr)\nlibrary(tidyr)\nlibrary(ggplot2)\nDefine function to retrieve information:\nget_gas &lt;- function(filtro, args) {\n  paste0(\n    \"https://sedeaplicaciones.minetur.gob.es\",\n    \"/ServiciosRESTCarburantes/PreciosCarburantes/EstacionesTerrestresHist/\",\n    filtro, paste(args, collapse = \"/\")\n  ) %&gt;%\n    request() %&gt;%\n    req_perform() %&gt;%\n    resp_body_json() %&gt;%\n    .[[\"ListaEESSPrecio\"]] %&gt;%\n    map(\\(x) as_tibble(list_flatten(x))) %&gt;%\n    bind_rows() %&gt;%\n    janitor::clean_names()\n}\nRetrieve yesterday’s gas prices in catalan provinces:\nprov &lt;- c(\"08\", \"43\", \"17\", \"25\")\n\ngCat &lt;- map(prov, \\(x) get_gas(\n  filtro = \"FiltroProvincia/\",\n  args = c(format(Sys.Date() - 1, \"%d-%m-%Y\"), x)\n)) %&gt;%\n  bind_rows() %&gt;%\n  mutate(precio = as.numeric(gsub(\",\", \".\", precio_gasolina_95_e5)))\nSummary of gas stations and price statistics per province:1\ngCat %&gt;%\n  summarise(\n    n = n(),\n    mean = mean(precio, na.rm = TRUE) %&gt;% round(3),\n    median = median(precio, na.rm = TRUE) %&gt;% round(3),\n    sd = sd(precio, na.rm = TRUE) %&gt;% round(3),\n    .by = provincia\n  )\n\n# A tibble: 4 × 5\n  provincia     n  mean median    sd\n  &lt;chr&gt;     &lt;int&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;\n1 BARCELONA   799  1.58   1.62 0.109\n2 TARRAGONA   229  1.57   1.63 0.109\n3 GIRONA      263  1.58   1.62 0.089\n4 LLEIDA      180  1.53   1.57 0.097\nWe are interest in historic prices from a certain province, for instance Cadiz whose code is 11. Considering daily observations for all Cadiz gas stations, a horizon of one year seems reasonable.\nDeclare province, product, horizon and API filter parameters:\nprov &lt;- \"11\"\nprod &lt;- \"01\"\nh &lt;- 366 / 12\nfil &lt;- \"FiltroProvinciaProducto/\"\n\ncadiz &lt;- map(format(Sys.Date() - 1:h, \"%d-%m-%Y\"), \\(x){\n  get_gas(filtro = fil, args = c(x, prov, prod)) %&gt;%\n    mutate(fecha = as.Date(x))\n}) %&gt;%\n  bind_rows() %&gt;%\n  mutate(precio = as.numeric(gsub(\",\", \".\", precio_producto)))\ngCat %&gt;%\n  filter(rotulo %in% (\n    summarise(gCat, .by = rotulo, n = n()) %&gt;%\n      arrange(n) %&gt;% pull(rotulo) %&gt;% tail(10)\n  )) %&gt;%\n  drop_na() %&gt;%\n  select(rotulo, precio) %&gt;%\n  ggplot(aes(rotulo, precio)) +\n  geom_boxplot() +\n  theme_bw() +\n  theme(\n    axis.title = element_blank()\n  ) +\n  labs(\n    title = \"Gas prices in Catalonia, 2025\",\n    subtitle = \"Euros per litre of gas 95 E5 (10 largest providers)\"\n  )"
+  },
+  {
+    "objectID": "notes/en/a/index.html#footnotes",
+    "href": "notes/en/a/index.html#footnotes",
+    "title": "Evolution of gas prices in Llinars del Vallès and Cardedeu",
+    "section": "Footnotes",
+    "text": "Footnotes\n\n\nConsidering 95 gas - E5↩︎"
+  },
+  {
+    "objectID": "about-en.html",
+    "href": "about-en.html",
+    "title": "Ferran Garcia",
+    "section": "",
+    "text": "English  Català  Español\n\n\nI am a results-driven statistician and economist with a curious mindset and proactive approach, focused on transforming complex data into actionable insights and communicating them effectively to a broad audience.\n\nEducation: UB, UPC, UM, US (econ and stats)\nExperience: 2 years uni and 1 year intern\nProjects: web scrapping, app development, modelling"
   }
 ]
