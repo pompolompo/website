@@ -4,7 +4,7 @@
     "href": "index.html",
     "title": "Ferran Garcia",
     "section": "",
-    "text": "Maecenas turpis velit, ultricies non elementum vel, luctus nec nunc. Nulla a diam interdum, faucibus sapien viverra, finibus metus. Donec non tortor diam. In ut elit aliquet, bibendum sem et, aliquam tortor. Donec congue, sem at rhoncus ultrices, nunc augue cursus erat, quis porttitor mauris libero ut ex. Nullam quis leo urna. Donec faucibus ligula eget pellentesque interdum. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean rhoncus interdum erat ut ultricies. Aenean tempus ex non elit suscipit, quis dignissim enim efficitur. Proin laoreet enim massa, vitae laoreet nulla mollis quis.\n\n\n\n\n\n\nPreus a les gasolineres d’Espanya\n\n\nQuinen preus fixen les gasolineres per cada producte al llarg del temps?\n\n\n\n\n\nFeb 11, 2024\n\n\n\n\n\n\nNo matching items"
+    "text": "Evolution of gas prices in Llinars del Vallès\n\n\n\n\n\n\n\n\nFeb 12, 2024\n\n\n\n\n\n\n\nPreus a les gasolineres d’Espanya\n\n\nQuinen preus fixen les gasolineres per cada producte al llarg del temps?\n\n\n\n\n\nFeb 11, 2024\n\n\n\n\n\n\nNo matching items"
   },
   {
     "objectID": "index.html#education",
@@ -192,6 +192,20 @@
     "objectID": "notes/en/a/index.html#footnotes",
     "href": "notes/en/a/index.html#footnotes",
     "title": "Evolution of gas prices in Llinars del Vallès and Cardedeu",
+    "section": "Footnotes",
+    "text": "Footnotes\n\n\nConsidering 95 gas - E5↩︎"
+  },
+  {
+    "objectID": "notes/en/gas_price_time/index.html",
+    "href": "notes/en/gas_price_time/index.html",
+    "title": "Evolution of gas prices in Llinars del Vallès",
+    "section": "",
+    "text": "Use this R libraries:\nlibrary(httr2)\nlibrary(dplyr)\nlibrary(purrr)\nlibrary(tidyr)\nlibrary(stringr)\nlibrary(ggplot2)\ntheme_set(\n  theme_bw() +\n  theme(\n    axis.title = element_blank()\n  )\n)\nDefine function to retrieve information:\nget_gas &lt;- function(filtro, args) {\n  paste0(\n    \"https://sedeaplicaciones.minetur.gob.es\",\n    \"/ServiciosRESTCarburantes/PreciosCarburantes/EstacionesTerrestresHist/\",\n    filtro, paste(args, collapse = \"/\")\n  ) %&gt;%\n    request() %&gt;%\n    req_perform() %&gt;%\n    resp_body_json() %&gt;%\n    .[[\"ListaEESSPrecio\"]] %&gt;%\n    map(\\(x) as_tibble(list_flatten(x))) %&gt;%\n    bind_rows() %&gt;%\n    janitor::clean_names()\n}\nRetrieve yesterday’s gas prices in catalan provinces:\nprov &lt;- c(\"08\", \"43\", \"17\", \"25\")\n\ngCat &lt;- map(prov, \\(x) get_gas(\n  filtro = \"FiltroProvincia/\",\n  args = c(format(Sys.Date() - 1, \"%d-%m-%Y\"), x)\n)) %&gt;%\n  bind_rows() %&gt;%\n  mutate(precio = as.numeric(gsub(\",\", \".\", precio_gasolina_95_e5)))\nSummary of gas stations and price statistics per province:1\ngCat %&gt;%\n  summarise(\n    n = n(),\n    mean = mean(precio, na.rm = TRUE) %&gt;% round(3),\n    median = median(precio, na.rm = TRUE) %&gt;% round(3),\n    sd = sd(precio, na.rm = TRUE) %&gt;% round(3),\n    .by = provincia\n  )\n\n# A tibble: 4 × 5\n  provincia     n  mean median    sd\n  &lt;chr&gt;     &lt;int&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;\n1 BARCELONA   811  1.56   1.60 0.108\n2 TARRAGONA   232  1.56   1.61 0.105\n3 GIRONA      269  1.57   1.60 0.088\n4 LLEIDA      186  1.52   1.55 0.096\nPrices from the largest providers in Catalonia, 2025:\ngCat %&gt;%\n  filter(rotulo %in% (\n    summarise(gCat, .by = rotulo, n = n()) %&gt;%\n      arrange(n) %&gt;% pull(rotulo) %&gt;% tail(10)\n  )) %&gt;%\n  drop_na() %&gt;%\n  select(rotulo, precio) %&gt;%\n  ggplot(aes(rotulo, precio)) +\n  geom_boxplot() +\n  labs(\n    title = \"Gas prices in Catalonia, 2025\",\n    subtitle = \"Euros per litre of gas 95 E5 (10 largest providers)\"\n  )\nNarrow down geographical scope: Consider municipalities nearby Llinars del Vallès\nmuns &lt;- gCat %&gt;% \n  summarise(n = n(), m = round(mean(precio), 3), .by = c(municipio, id_municipio)) %&gt;% \n  filter(str_detect(municipio, \n    \"Llinars|Cardedeu|Vilamajor|Palautordera|Sant Celoni\"\n  ))\n\nknitr::kable(muns, caption = \"Average price and station count per municipality\")\n\n\nAverage price and station count per municipality\n\n\nmunicipio\nid_municipio\nn\nm\n\n\n\n\nCardedeu\n908\n4\n1.657\n\n\nLlinars del Vallès\n973\n3\n1.652\n\n\nSant Antoni de Vilamajor\n1060\n1\n1.629\n\n\nSant Celoni\n1065\n4\n1.627\n\n\nSanta Maria de Palautordera\n1123\n3\n1.601\nRetrieve daily prices for Gasolina 95 - E5 at all locations within scope. Define request parameters:\n# api end point\nfil &lt;- \"FiltroMunicipioProducto/\"\n\nt &lt;- Sys.time()\n# parameters\nanys &lt;- 1/12\nmun &lt;- set_names(muns$id_municipio, muns$municipio)\nprod &lt;- set_names(\"01\", \"gas95-e5\")\ndate &lt;- format(Sys.Date() - 1:(anys*365), \"%d-%m-%Y\")\nparams &lt;- expand_grid(date, mun, prod)\n\ngas &lt;- apply(params, 1, \\(x) mutate(get_gas(filtro = fil, args = x), date = as.Date(x[1]))) %&gt;% \n  bind_rows() %&gt;%\n  mutate(precio = as.numeric(gsub(\",\", \".\", precio_producto)))\nt &lt;- Sys.time() - t\nEvolution of average price per municipality:\nsummarise(gas, .by = c(municipio, date), price = mean(precio), desv = sd(precio)) %&gt;% \n  ggplot(aes(x = date, y = price, colour = municipio)) +\n  geom_line() +\n  labs(colour = \"Municipality\", title = \"Gas prive evolution, last 30 days\")"
+  },
+  {
+    "objectID": "notes/en/gas_price_time/index.html#footnotes",
+    "href": "notes/en/gas_price_time/index.html#footnotes",
+    "title": "Evolution of gas prices in Llinars del Vallès",
     "section": "Footnotes",
     "text": "Footnotes\n\n\nConsidering 95 gas - E5↩︎"
   }
