@@ -24,8 +24,8 @@ about:
 
 I am a results-driven statistician and economist with a curious mindset and proactive approach, focused on transforming complex data into actionable insights and communicating them effectively to a broad audience.
  
-- **Education:** UB, UPC, UM, US (econ and stats)
+- **Education:** Doble degree in Statistica and Economica in UB and UPC. Erasmus exchange in Maastricht (1 year) and Sevilla (6 months)
 
-- **Experience:** 2 years uni and 1 year intern
+- **Experience:** Statistic's university department scolarship (2 years). Commercial data analyst in Amplifon (1 year). Multiple part time jobs (referee, recepcionist, waiter, professor)
 
-- **Projects:** web scrapping, app development, modelling
+- **Projects:** Bayesian Statistics, Spatio - Temporal modelling, Web Scrapping, Real Estate, Financial Markets

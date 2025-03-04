@@ -24,8 +24,8 @@ about:
 
 Soy un estadístico y economista orientado a resultados, con actitud proactiva y ganas de seguir aprendiendo. Me especializo en analizar y modelizar datos para extraer información de interés y comunicarla.
 
-- **Education:** UB, UPC, UM, US (econ and stats)
+- **Education:** Doble grado en Economía y Estadística por la UB y UPC. Intercambio Erasmus anual en Maastrich y semestral en Sevilla.
 
-- **Experience:** 2 years uni and 1 year intern
+- **Experience:** Becario del departamento de Estadística de la universidad (2 años). Analista de datos comerciales en Amplifon (1 año). Trabajos a tiempo parcial (árbitro, recepcionista, profesor, camarero)
 
-- **Projects:** web scrapping, app development, modelling
+- **Projects:** Estadística Bayesiana, Modelos Espacio-Tiempo, Web Scrapping, Mercado Inmobiliario, Mercados Financieros
