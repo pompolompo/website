@@ -1,5 +1,6 @@
 ---
-title: "Evolution of gas prices in Llinars del Vallès and Cardedeu"
+title: "Evolution of gas prices in Llinars del Vallès"
+date: 02-12-2024
 format: html
 ---
 
@@ -16,7 +17,18 @@ library(httr2)
 library(dplyr)
 library(purrr)
 library(tidyr)
+library(stringr)
 library(ggplot2)
+```
+
+
+```{r global_opts}
+theme_set(
+  theme_bw() +
+  theme(
+    axis.title = element_blank()
+  )
+)
 ```
 
 Define function to retrieve information:
@@ -64,23 +76,7 @@ gCat %>%
   )
 ```
 
-We are interest in historic prices from a certain province, for instance Cadiz whose code is 11. Considering daily observations for all Cadiz gas stations, a horizon of one year seems reasonable.
-
-Declare province, product, horizon and API filter parameters:
-
-```{r time-prov}
-prov <- "11"
-prod <- "01"
-h <- 366 / 12
-fil <- "FiltroProvinciaProducto/"
-
-cadiz <- map(format(Sys.Date() - 1:h, "%d-%m-%Y"), \(x){
-  get_gas(filtro = fil, args = c(x, prov, prod)) %>%
-    mutate(fecha = as.Date(x))
-}) %>%
-  bind_rows() %>%
-  mutate(precio = as.numeric(gsub(",", ".", precio_producto)))
-```
+Prices from the largest providers in Catalonia, 2025:
 
 ```{r plot}
 gCat %>%
@@ -92,13 +88,50 @@ gCat %>%
   select(rotulo, precio) %>%
   ggplot(aes(rotulo, precio)) +
   geom_boxplot() +
-  theme_bw() +
-  theme(
-    axis.title = element_blank()
-  ) +
   labs(
     title = "Gas prices in Catalonia, 2025",
     subtitle = "Euros per litre of gas 95 E5 (10 largest providers)"
   )
+```
+
+Narrow down geographical scope: Consider municipalities nearby Llinars del Vallès
+
+```{r municipalities}
+muns <- gCat %>% 
+  summarise(n = n(), m = round(mean(precio), 3), .by = c(municipio, id_municipio)) %>% 
+  filter(str_detect(municipio, 
+    "Llinars|Cardedeu|Vilamajor|Palautordera|Sant Celoni"
+  ))
+
+knitr::kable(muns, caption = "Average price and station count per municipality")
+```
+
+Retrieve daily prices for *Gasolina 95 - E5* at all locations within scope. Define request parameters:
+
+```{r mun-time}
+# api end point
+fil <- "FiltroMunicipioProducto/"
+
+t <- Sys.time()
+# parameters
+anys <- 1/12
+mun <- set_names(muns$id_municipio, muns$municipio)
+prod <- set_names("01", "gas95-e5")
+date <- format(Sys.Date() - 1:(anys*365), "%d-%m-%Y")
+params <- expand_grid(date, mun, prod)
+
+gas <- apply(params, 1, \(x) mutate(get_gas(filtro = fil, args = x), date = as.Date(x[1]))) %>% 
+  bind_rows() %>%
+  mutate(precio = as.numeric(gsub(",", ".", precio_producto)))
+t <- Sys.time() - t
+```
+
+Evolution of average price per municipality:
+
+```{r}
+summarise(gas, .by = c(municipio, date), price = mean(precio), desv = sd(precio)) %>% 
+  ggplot(aes(x = date, y = price, colour = municipio)) +
+  geom_line() +
+  labs(colour = "Municipality", title = "Gas prive evolution, last 30 days")
 ```
 
