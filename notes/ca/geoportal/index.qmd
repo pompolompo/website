@@ -1,0 +1,211 @@
+---
+title: "Preus de benzina - Geoportal"
+format: 
+ html:
+   toc: true
+---
+
+```{r cunk_opts}
+#| echo: false
+
+knitr::opts_chunk$set(warning = FALSE, message = FALSE, error = FALSE)
+```
+
+## Context
+
+Preus de benzina a Espanya, sèries temporals (freqüència diària) desagregades a nivell de gasolinera. El [Ministerio de transición ecológica](https://www.miteco.gob.es/es/energia/servicios/consultas-de-carburantes.html) ens ofereix l'informació a través d'una API [^1] que es diu [Geoportal](https://geoportalgasolineras.es/geoportal-instalaciones/Inicio).
+
+[^1]: API: Interfície de programació d'aplicacions. Permet l'intercanvi d'informació entre diferents programes informàtics.
+
+## Delimitació de la població
+
+Tenim moltes dades, per simplicitat comencem considerant un subconjunt de la població. Ens interessem pels preus de cert producte a les benzineres (estacions terrestres) [^2] ubicades en un llistat de municipis en cert hortitzó temporal. Per exemple:
+
+| **Municipis**               | **Horitzó**      | **Producte** |
+|-----------------------------|------------------|--------------|
+| Cardedeu                    | 01/01/2022 - ... | Benzina 95   |
+| Llinars del Vallès          |                  |              |
+| Sant Antoni de Vilamajor    |                  |              |
+| Sant Celoni                 |                  |              |
+| Santa Maria de Palautordera |                  |              |
+
+[^2]: No s'incluouen els possibles punts de racàrrega matrítims
+
+<!--
+Insert mapa gasolineres en la zona: library(mapSpain)
+-->
+
+## Obtenció de les dades
+
+A l'apartat de [descàrregues](https://geoportalgasolineras.es/geoportal-instalaciones/DescargarFicheros) del [Geoportal](https://geoportalgasolineras.es/geoportal-instalaciones/DescargarFicheros) trobarem les consultes que necessitem sota la secció preus. Podem accedir a l'informació de diferents formes, utilitzarem `R` per comoditat. Per comunicar-nos amb l'*API*, agrupar, netejar i guardar les dades farem servir les següents llibreries:
+
+```{r libs}
+library(httr2)      # comunicació amb l'API
+library(purrr)      # paralelització
+library(dplyr)      # manipulació de dades
+library(janitor)    # neteja noms de dades
+library(ggplot2)    # visualitzacions
+library(knitr)      # taules
+```
+
+<!--
+Definim l'estil general dels nostres gràfics:
+-->
+
+```{r set_ggtheme}
+#| echo: false
+
+theme_set( theme_bw() +
+  # remove miscelaneous
+  theme(
+    axis.ticks = element_blank(),
+    axis.title = element_blank(),
+    legend.position = "none",
+    plot.caption.position = "plot"
+  )
+)
+```
+
+
+Per fer una consulta cal seguir els següents passos:
+
+1. Decidir quina és la consulta
+2. Parametritzar la consulta (si cal)
+3. Petició i resposta de l'API
+
+### Quina és la consulta?
+
+Disposem d'unes 20 consultes diferents que ens permeten descarregar informació sota diferents filtres. Cadascuna consta d'una descripció, una *url* i un exemple:
+
+![API del Geoportal del Ministerio](media/geoportal_api.png)
+
+### Parametrització de la consulta
+
+Algunes consultes no requereixen cap paràmetre, són una mena de llista informativa. Altres requereixen delimitar l'informació que es demana. La data del calendari, el tipus de producte o la regió son els paràmetres més freqüents.
+
+Una forma d'obtenir els preus dins de la zona i horitzó que considerem és utilitzant els codis municipals. Primer trobarem el codi de la provincia de Barcelona i l'utilitzarem per trobar els codis dels municipis desitjats.
+
+Amb els codis municipals, el codi de producte petrolífer i un l'horitzó temporal delimitat podrem descarregar els preus de benzina per l'interval i la zona que sigui necessari. 
+
+### Petició i resposta de l'API
+
+Primer ens ocuparem del llistat de províncies i del producte. Busquem els identificadors de la *benzina 95 e5* i la provincia de Barcelona.
+
+```{r api_dict}
+# base url
+url <- "https://sedeaplicaciones.minetur.gob.es/ServiciosRESTCarburantes/PreciosCarburantes"
+
+# endpoints without params
+dict <- paste0(url, c(
+  "/Listados/Provincias/", "/Listados/ProductosPetroliferos/"
+)) %>% 
+  set_names(c("prov", "prod")) %>% 
+  map(\(x){
+    request(x) %>% 
+    req_perform() %>% 
+    resp_body_json() %>% 
+    map(\(json) as_tibble(list_flatten(json))) %>% 
+    bind_rows() %>% 
+    clean_names()
+})
+
+# province and product id
+id_prov <- dict$prov %>% 
+  filter(grepl("barcelona", provincia, ignore.case = TRUE)) %>% 
+  with(set_names(id_povincia, provincia)); id_prov # tenen el nom mal escrit...
+  
+id_prod <- dict$prod %>% 
+  filter(grepl("gasolina 95 e5$", nombre_producto, ignore.case = TRUE)) %>% 
+  with(set_names(id_producto, nombre_producto_abreviatura)); id_prod
+```
+
+Ara farem una consulta per obtenir els codis dels municipis d'interès a partir del codi de província de Barcelona.
+
+```{r api_municipis}
+# municipalities id
+muns <- paste0(url, "/Listados/MunicipiosPorProvincia/", id_prov) %>% 
+  request() %>% 
+  req_perform() %>% 
+  resp_body_json() %>%  
+  bind_rows() %>% 
+  filter(grepl(
+    pattern = "^Llinars|Cardedeu|Vilamajor|Palautordera|Sant Celoni", 
+    x = Municipio, ignore.case = TRUE
+    )) %>% 
+  distinct(IDMunicipio, Municipio) %>% 
+  with(set_names(IDMunicipio, Municipio)); muns
+```
+
+Ja tenim tots els paràmetres necessaris per fer la nostra consulta. Només ens falta definir l'horitzó temporal i executar la consulta. 
+
+```{r api_preu}
+#| eval: false
+
+horitzo <- format(seq.Date(as.Date("2010/01/01"), Sys.Date() - 1, "day"), "%d-%m-%Y")
+t <- Sys.time()
+preu <- expand.grid(dia = horitzo, mun = muns) %>% 
+  pmap(\(dia, mun){
+    url %>% 
+      paste0("/EstacionesTerrestresHist/FiltroMunicipioProducto/") %>% 
+      paste0(dia, "/", mun, "/", id_prod) %>% 
+      request() %>% 
+      req_perform() %>% 
+      resp_body_json() %>% 
+      .[["ListaEESSPrecio"]] %>% 
+      lapply(as_tibble) %>% 
+      bind_rows() %>% 
+      mutate(dia = dia)
+  }) %>% 
+  bind_rows() %>% 
+  clean_names()
+
+#write.csv2(preu, "data/preu.csv")
+Sys.time() - t
+```
+
+No l'evaluarem si no és necessari ja que tarda uns minuts, utilitzarem una versió recent. 
+
+```{r import_preu}
+#| echo: false
+
+# la primera columna conté el número de fila
+preu <- mutate( read.csv2("data/preu.csv")[,-1], 
+  preu = as.numeric(gsub(",", ".", precio_producto)),
+  dia = as.Date.character(dia, format = "%d-%m-%Y")
+)
+
+glimpse(preu)
+```
+
+Conté informació sobre el preu de `r names(id_prod)` en `r length(unique(preu$Municipio))` municipis de la provincia de `r unique(preu$Provincia)`.
+
+## Descriptiva
+
+Fem una ullada a les nostres dades. Plantegem qüestións d'interès a primera vista.
+
+- Comparació de grups (municipis, estacions, codis postals...)
+- Mapa de les gasolineres
+- Quantitats d'interès (i.e mean(preu) - median(preu))
+- Sèries estacionàries? Cointegrables? [VAR](https://en.wikipedia.org/wiki/Vector_autoregression)?
+
+```{r viz_grups_1}
+#| echo: false
+
+ggplot(preu, aes(dia, preu)) +
+    geom_line(alpha = .5) +
+    geom_line(aes(dia, m, colour = municipio),
+      summarise(preu, .by = c(dia, municipio), m = mean(preu)
+    )) + theme(
+      plot.title = element_text(size = 16), plot.subtitle = element_text(size = 14),
+      axis.text = element_text(size = 12), legend.direction = "horizontal",
+      legend.position = "bottom",  legend.text.position = "bottom",
+      legend.title = element_blank(), legend.text = element_text(size = 10),
+      legend.background = element_blank(),
+      legend.box.background = element_rect(colour = "grey33")
+    ) + labs(
+       title = "Preu mitjà de la benzina 95-e5 a nivell municipal", 
+       subtitle = paste("Rang de preu observat en gris, del 2020 fins al", max(preu$dia))
+    ) + scale_x_date(date_breaks = "2 years", date_labels = "%Y")
+```
+
+

@@ -4,7 +4,7 @@
     "href": "index.html",
     "title": "Ferran Garcia",
     "section": "",
-    "text": "Evolution of gas prices in Llinars del Vallès\n\n\n\n\n\n\n\n\nFeb 12, 2024\n\n\n\n\n\n\n\nPreus a les gasolineres d’Espanya\n\n\nQuinen preus fixen les gasolineres per cada producte al llarg del temps?\n\n\n\n\n\nFeb 11, 2024\n\n\n\n\n\n\nNo matching items"
+    "text": "Preus de benzina - Geoportal\n\n\n\n\n\n\n\n\n\n\n\n\n\nEvolution of gas prices in Llinars del Vallès\n\n\n\n\n\n\n\n\nFeb 12, 2024\n\n\n\n\n\n\n\nPreus a les gasolineres d’Espanya\n\n\nQuinen preus fixen les gasolineres per cada producte al llarg del temps?\n\n\n\n\n\nFeb 11, 2024\n\n\n\n\n\n\nNo matching items"
   },
   {
     "objectID": "index.html#education",
@@ -208,5 +208,47 @@
     "title": "Evolution of gas prices in Llinars del Vallès",
     "section": "Footnotes",
     "text": "Footnotes\n\n\nConsidering 95 gas - E5↩︎"
+  },
+  {
+    "objectID": "notes/ca/geoportal/index.html",
+    "href": "notes/ca/geoportal/index.html",
+    "title": "Preus de benzina - Geoportal",
+    "section": "",
+    "text": "Preus de benzina a Espanya, sèries temporals (freqüència diària) desagregades a nivell de gasolinera. El Ministerio de transición ecológica ens ofereix l’informació a través d’una API 1 que es diu Geoportal."
+  },
+  {
+    "objectID": "notes/ca/geoportal/index.html#context",
+    "href": "notes/ca/geoportal/index.html#context",
+    "title": "Preus de benzina - Geoportal",
+    "section": "",
+    "text": "Preus de benzina a Espanya, sèries temporals (freqüència diària) desagregades a nivell de gasolinera. El Ministerio de transición ecológica ens ofereix l’informació a través d’una API 1 que es diu Geoportal."
+  },
+  {
+    "objectID": "notes/ca/geoportal/index.html#delimitació-de-la-població",
+    "href": "notes/ca/geoportal/index.html#delimitació-de-la-població",
+    "title": "Preus de benzina - Geoportal",
+    "section": "Delimitació de la població",
+    "text": "Delimitació de la població\nTenim moltes dades, per simplicitat comencem considerant un subconjunt de la població. Ens interessem pels preus de cert producte a les benzineres (estacions terrestres) 2 ubicades en un llistat de municipis en cert hortitzó temporal. Per exemple:\n\n\n\nMunicipis\nHoritzó\nProducte\n\n\n\n\nCardedeu\n01/01/2022 - …\nBenzina 95\n\n\nLlinars del Vallès\n\n\n\n\nSant Antoni de Vilamajor\n\n\n\n\nSant Celoni\n\n\n\n\nSanta Maria de Palautordera"
+  },
+  {
+    "objectID": "notes/ca/geoportal/index.html#obtenció-de-les-dades",
+    "href": "notes/ca/geoportal/index.html#obtenció-de-les-dades",
+    "title": "Preus de benzina - Geoportal",
+    "section": "Obtenció de les dades",
+    "text": "Obtenció de les dades\nA l’apartat de descàrregues del Geoportal trobarem les consultes que necessitem sota la secció preus. Podem accedir a l’informació de diferents formes, utilitzarem R per comoditat. Per comunicar-nos amb l’API, agrupar, netejar i guardar les dades farem servir les següents llibreries:\n\nlibrary(httr2)      # comunicació amb l'API\nlibrary(purrr)      # paralelització\nlibrary(dplyr)      # manipulació de dades\nlibrary(janitor)    # neteja noms de dades\nlibrary(ggplot2)    # visualitzacions\nlibrary(knitr)      # taules\n\n\nPer fer una consulta cal seguir els següents passos:\n\nDecidir quina és la consulta\nParametritzar la consulta (si cal)\nPetició i resposta de l’API\n\n\nQuina és la consulta?\nDisposem d’unes 20 consultes diferents que ens permeten descarregar informació sota diferents filtres. Cadascuna consta d’una descripció, una url i un exemple:\n\n\n\nAPI del Geoportal del Ministerio\n\n\n\n\nParametrització de la consulta\nAlgunes consultes no requereixen cap paràmetre, són una mena de llista informativa. Altres requereixen delimitar l’informació que es demana. La data del calendari, el tipus de producte o la regió son els paràmetres més freqüents.\nUna forma d’obtenir els preus dins de la zona i horitzó que considerem és utilitzant els codis municipals. Primer trobarem el codi de la provincia de Barcelona i l’utilitzarem per trobar els codis dels municipis desitjats.\nAmb els codis municipals, el codi de producte petrolífer i un l’horitzó temporal delimitat podrem descarregar els preus de benzina per l’interval i la zona que sigui necessari.\n\n\nPetició i resposta de l’API\nPrimer ens ocuparem del llistat de províncies i del producte. Busquem els identificadors de la benzina 95 e5 i la provincia de Barcelona.\n\n# base url\nurl &lt;- \"https://sedeaplicaciones.minetur.gob.es/ServiciosRESTCarburantes/PreciosCarburantes\"\n\n# endpoints without params\ndict &lt;- paste0(url, c(\n  \"/Listados/Provincias/\", \"/Listados/ProductosPetroliferos/\"\n)) %&gt;% \n  set_names(c(\"prov\", \"prod\")) %&gt;% \n  map(\\(x){\n    request(x) %&gt;% \n    req_perform() %&gt;% \n    resp_body_json() %&gt;% \n    map(\\(json) as_tibble(list_flatten(json))) %&gt;% \n    bind_rows() %&gt;% \n    clean_names()\n})\n\n# province and product id\nid_prov &lt;- dict$prov %&gt;% \n  filter(grepl(\"barcelona\", provincia, ignore.case = TRUE)) %&gt;% \n  with(set_names(id_povincia, provincia)); id_prov # tenen el nom mal escrit...\n\nBARCELONA \n     \"08\" \n\nid_prod &lt;- dict$prod %&gt;% \n  filter(grepl(\"gasolina 95 e5$\", nombre_producto, ignore.case = TRUE)) %&gt;% \n  with(set_names(id_producto, nombre_producto_abreviatura)); id_prod\n\nG95E5 \n  \"1\" \n\n\nAra farem una consulta per obtenir els codis dels municipis d’interès a partir del codi de província de Barcelona.\n\n# municipalities id\nmuns &lt;- paste0(url, \"/Listados/MunicipiosPorProvincia/\", id_prov) %&gt;% \n  request() %&gt;% \n  req_perform() %&gt;% \n  resp_body_json() %&gt;%  \n  bind_rows() %&gt;% \n  filter(grepl(\n    pattern = \"^Llinars|Cardedeu|Vilamajor|Palautordera|Sant Celoni\", \n    x = Municipio, ignore.case = TRUE\n    )) %&gt;% \n  distinct(IDMunicipio, Municipio) %&gt;% \n  with(set_names(IDMunicipio, Municipio)); muns\n\n                   Cardedeu          Llinars del Vallès \n                      \"908\"                       \"973\" \n   Sant Antoni de Vilamajor                 Sant Celoni \n                     \"1060\"                      \"1065\" \nSant Esteve de Palautordera      Sant Pere de Vilamajor \n                     \"1069\"                      \"1095\" \nSanta Maria de Palautordera \n                     \"1123\" \n\n\nJa tenim tots els paràmetres necessaris per fer la nostra consulta. Només ens falta definir l’horitzó temporal i executar la consulta.\n\nhoritzo &lt;- format(seq.Date(as.Date(\"2010/01/01\"), Sys.Date() - 1, \"day\"), \"%d-%m-%Y\")\nt &lt;- Sys.time()\npreu &lt;- expand.grid(dia = horitzo, mun = muns) %&gt;% \n  pmap(\\(dia, mun){\n    url %&gt;% \n      paste0(\"/EstacionesTerrestresHist/FiltroMunicipioProducto/\") %&gt;% \n      paste0(dia, \"/\", mun, \"/\", id_prod) %&gt;% \n      request() %&gt;% \n      req_perform() %&gt;% \n      resp_body_json() %&gt;% \n      .[[\"ListaEESSPrecio\"]] %&gt;% \n      lapply(as_tibble) %&gt;% \n      bind_rows() %&gt;% \n      mutate(dia = dia)\n  }) %&gt;% \n  bind_rows() %&gt;% \n  clean_names()\n\n#write.csv2(preu, \"data/preu.csv\")\nSys.time() - t\n\nNo l’evaluarem si no és necessari ja que tarda uns minuts, utilitzarem una versió recent.\n\n\nRows: 77,476\nColumns: 19\n$ c_p             &lt;int&gt; 8440, 8440, 8440, 8440, 8440, 8440, 8440, 8440, 8440, …\n$ direccion       &lt;chr&gt; \"CARRETERA C-251 KM. 5,5\", \"CARRETERA C-251 KM. 5,5\", …\n$ horario         &lt;chr&gt; \"L-D: 06:00-22:00\", \"L-D: 06:00-22:00\", \"L-D: 06:00-22…\n$ latitud         &lt;dbl&gt; 41.63481, 41.63522, 41.63481, 41.63522, 41.63481, 41.6…\n$ localidad       &lt;chr&gt; \"CARDEDEU                 \", \"CARDEDEU                …\n$ longitud_wgs84  &lt;dbl&gt; 2.340139, 2.339722, 2.340139, 2.339722, 2.340139, 2.33…\n$ margen          &lt;chr&gt; \"D\", \"I\", \"D\", \"I\", \"D\", \"I\", \"D\", \"I\", \"D\", \"I\", \"D\",…\n$ municipio       &lt;chr&gt; \"Cardedeu\", \"Cardedeu\", \"Cardedeu\", \"Cardedeu\", \"Carde…\n$ precio_producto &lt;dbl&gt; 1.108, 1.108, 1.108, 1.108, 1.108, 1.108, 1.108, 1.108…\n$ provincia       &lt;chr&gt; \"BARCELONA\", \"BARCELONA\", \"BARCELONA\", \"BARCELONA\", \"B…\n$ remision        &lt;chr&gt; \"OM\", \"OM\", \"OM\", \"OM\", \"OM\", \"OM\", \"OM\", \"OM\", \"OM\", …\n$ rotulo          &lt;chr&gt; \"REPSOL\", \"REPSOL\", \"REPSOL\", \"REPSOL\", \"REPSOL\", \"REP…\n$ tipo_venta      &lt;chr&gt; \"P\", \"P\", \"P\", \"P\", \"P\", \"P\", \"P\", \"P\", \"P\", \"P\", \"P\",…\n$ ideess          &lt;int&gt; 2509, 2510, 2509, 2510, 2509, 2510, 2509, 2510, 2509, …\n$ id_municipio    &lt;int&gt; 908, 908, 908, 908, 908, 908, 908, 908, 908, 908, 908,…\n$ id_provincia    &lt;int&gt; 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, …\n$ idccaa          &lt;int&gt; 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, …\n$ dia             &lt;date&gt; 2010-01-01, 2010-01-01, 2010-01-02, 2010-01-02, 2010-…\n$ preu            &lt;dbl&gt; 1.108, 1.108, 1.108, 1.108, 1.108, 1.108, 1.108, 1.108…\n\n\nConté informació sobre el preu de G95E5 en 0 municipis de la provincia de ."
+  },
+  {
+    "objectID": "notes/ca/geoportal/index.html#descriptiva",
+    "href": "notes/ca/geoportal/index.html#descriptiva",
+    "title": "Preus de benzina - Geoportal",
+    "section": "Descriptiva",
+    "text": "Descriptiva\nFem una ullada a les nostres dades. Plantegem qüestións d’interès a primera vista.\n\nComparació de grups (municipis, estacions, codis postals…)\nMapa de les gasolineres\nQuantitats d’interès (i.e mean(preu) - median(preu))\nSèries estacionàries? Cointegrables? VAR?"
+  },
+  {
+    "objectID": "notes/ca/geoportal/index.html#footnotes",
+    "href": "notes/ca/geoportal/index.html#footnotes",
+    "title": "Preus de benzina - Geoportal",
+    "section": "Footnotes",
+    "text": "Footnotes\n\n\nAPI: Interfície de programació d’aplicacions. Permet l’intercanvi d’informació entre diferents programes informàtics.↩︎\nNo s’incluouen els possibles punts de racàrrega matrítims↩︎"
   }
 ]
