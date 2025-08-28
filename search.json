@@ -1,47 +1,5 @@
 [
   {
-    "objectID": "about-en.html",
-    "href": "about-en.html",
-    "title": "Ferran Garcia",
-    "section": "",
-    "text": "English  Català  Español\n\n\nI am a results-driven statistician and economist with a curious mindset and proactive approach, focused on transforming complex data into actionable insights and communicating them effectively to a broad audience.\n\nEducation: Doble degree in Statistica and Economica in UB and UPC. Erasmus exchange in Maastricht (1 year) and Sevilla (6 months)\nExperience: Statistic’s university department scolarship (2 years). Commercial data analyst in Amplifon (1 year). Multiple part time jobs (referee, recepcionist, waiter, professor)\nProjects: Bayesian Statistics, Spatio - Temporal modelling, Web Scrapping, Real Estate, Financial Markets"
-  },
-  {
-    "objectID": "about-ca.html",
-    "href": "about-ca.html",
-    "title": "Ferran Garcia",
-    "section": "",
-    "text": "English  Català  Español\n\n\nSóc un estadístic i economista orientat a resultats, amb actitud proactiva i ganes de seguir aprenent. M’especialitzo en analitzar i modelitzar dades per extreure informació d’interès i comunicar-la.\n\nEducation: Doble grau en Estadística i Economia a la UPC i UB. Intercanvi Erasmus anual a Maastricht i semestral a Sevilla.\nExperience: Becari estadística de l’universitat (2 anys) i analista de dades comercials a Amplifon (1 any), altres feines a temps parcial (àribtre, recepcionista, professor, cambrer)\nInteresos: Estadística Bayesiana, Models Espai - Temps, Web Scrapping, Mercat Inmobiliari, Mercats Financers"
-  },
-  {
-    "objectID": "notes/ca/geoportal_api/index.html",
-    "href": "notes/ca/geoportal_api/index.html",
-    "title": "Preus a les gasolineres d’Espanya",
-    "section": "",
-    "text": "On s’ón’ubiquen els punts de recàrrega?\nQuin carburant ofereixen?\nQuin preu cobren? Com canvia al llarg del temps?\nQuin horari obre?\nÉs d’autoservei?\nÉs una cooperativa?\nQui n’és el propietari?\nExisteixen portals similars a Europa"
-  },
-  {
-    "objectID": "notes/ca/geoportal_api/index.html#quina-informació-hi-ha-al-geoportal",
-    "href": "notes/ca/geoportal_api/index.html#quina-informació-hi-ha-al-geoportal",
-    "title": "Preus a les gasolineres d’Espanya",
-    "section": "",
-    "text": "On s’ón’ubiquen els punts de recàrrega?\nQuin carburant ofereixen?\nQuin preu cobren? Com canvia al llarg del temps?\nQuin horari obre?\nÉs d’autoservei?\nÉs una cooperativa?\nQui n’és el propietari?\nExisteixen portals similars a Europa"
-  },
-  {
-    "objectID": "notes/ca/geoportal_api/index.html#com-obtenim-les-dades",
-    "href": "notes/ca/geoportal_api/index.html#com-obtenim-les-dades",
-    "title": "Preus a les gasolineres d’Espanya",
-    "section": "Com obtenim les dades?",
-    "text": "Com obtenim les dades?\n\nConnexió amb la API\nCal connectarnos a la API del geoportal per obtenir les dades que ens interessen. Descarregarem en format .json, que R llegirà com llista. Finalment apilarem totes les observacions en una taula.\nEl geoportal ofereix múltiples APIs que donen accés a diferent informació (Servicios REST). Estem interessats en l’evolució dels preus de cada producte així que utilitzem la següent estructura:\nPart comú: Sempre serà la mateixa\nhttps://sedeaplicaciones.minetur.gob.es/ServiciosRESTCarburantes/PreciosCarburantes/\nPart Específica: Escollirem i parametritzarem en funció de l’informació que volem\nEstacionesTerrestresHist/FiltroProvinciaProducto/{FECHA}/{IDPROVINCIA}/{IDPRODUCTO}\n\n\nExemple en R\nUtilitzarem les següents llibreries d’R:\n\nsuppressWarnings(suppressMessages({\n  library(dplyr)\n  library(purrr)\n  library(httr2)\n}))\n\nEstem interessats en el preu de la gasolina 95 E5. Ens centrem en la província de Barcelona i volem l’informació del dia anterior. Els productes i províncies tenen codis associats, codificarem la data en format dd-mm-yy:\n\ndata &lt;- format(Sys.Date() - 1, \"%d-%m-%Y\")\nproducte &lt;- \"01\"\nprovincies &lt;- set_names(\n  c(\"08\", \"17\", \"25\", \"43\"), \n  c(\"barcelona\", \"girona\", \"lleida\", \"tarragona\")\n)\n\nConstruim l’url per cada província:\n\nbase_url &lt;- provincies %&gt;% \n  map(\\(prov) paste0(\n    \"https://sedeaplicaciones.minetur.gob.es/\",\n    \"ServiciosRESTCarburantes/PreciosCarburantes/\",\n    \"EstacionesTerrestresHist/FiltroProvinciaProducto/\",\n    data, \"/\", prov, \"/\", producte\n))\n\nDemanem l’informació, la convertim en llista i l’apilem en una taula per cada província:\n\nresponse &lt;- map(base_url, \\(url) req_perform(request(url)))\n\ntbl &lt;- response %&gt;% \n  map(\\(resp){\n    resp_body_json(resp)[[\"ListaEESSPrecio\"]] %&gt;% \n      map(\\(json) as_tibble(list_flatten(json))) %&gt;% \n      bind_rows() %&gt;% \n      mutate(PrecioProducto = as.numeric(sub(\",\", \".\", PrecioProducto)))\n  })\n\nFem una ullada als preus:\n\nwith(list_c(tbl), boxplot(PrecioProducto ~ Provincia, xlab = \"\", ylab = \"\"))\n\n\n\n\n\n\n\n\n\nhist(list_c(tbl)[[\"PrecioProducto\"]], breaks = 30, main = \"\", xlab = \"\", ylab = \"\")"
-  },
-  {
-    "objectID": "notes/ca/geoportal_api/index.html#més-enllà",
-    "href": "notes/ca/geoportal_api/index.html#més-enllà",
-    "title": "Preus a les gasolineres d’Espanya",
-    "section": "Més enllà",
-    "text": "Més enllà\n\nMapa de preus de gasolineres"
-  },
-  {
     "objectID": "about-es.html",
     "href": "about-es.html",
     "title": "Ferran Garcia",
@@ -53,7 +11,7 @@
     "href": "notes/en/gas_price_time/index.html",
     "title": "Evolution of gas prices in Llinars del Vallès",
     "section": "",
-    "text": "Use this R libraries:\nlibrary(httr2)\nlibrary(dplyr)\nlibrary(purrr)\nlibrary(tidyr)\nlibrary(stringr)\nlibrary(ggplot2)\ntheme_set(\n  theme_bw() +\n  theme(\n    axis.title = element_blank()\n  )\n)\nDefine function to retrieve information:\nget_gas &lt;- function(filtro, args) {\n  paste0(\n    \"https://sedeaplicaciones.minetur.gob.es\",\n    \"/ServiciosRESTCarburantes/PreciosCarburantes/EstacionesTerrestresHist/\",\n    filtro, paste(args, collapse = \"/\")\n  ) %&gt;%\n    request() %&gt;%\n    req_perform() %&gt;%\n    resp_body_json() %&gt;%\n    .[[\"ListaEESSPrecio\"]] %&gt;%\n    map(\\(x) as_tibble(list_flatten(x))) %&gt;%\n    bind_rows() %&gt;%\n    janitor::clean_names()\n}\nRetrieve yesterday’s gas prices in catalan provinces:\nprov &lt;- c(\"08\", \"43\", \"17\", \"25\")\n\ngCat &lt;- map(prov, \\(x) get_gas(\n  filtro = \"FiltroProvincia/\",\n  args = c(format(Sys.Date() - 1, \"%d-%m-%Y\"), x)\n)) %&gt;%\n  bind_rows() %&gt;%\n  mutate(precio = as.numeric(gsub(\",\", \".\", precio_gasolina_95_e5)))\nSummary of gas stations and price statistics per province:1\ngCat %&gt;%\n  summarise(\n    n = n(),\n    mean = mean(precio, na.rm = TRUE) %&gt;% round(3),\n    median = median(precio, na.rm = TRUE) %&gt;% round(3),\n    sd = sd(precio, na.rm = TRUE) %&gt;% round(3),\n    .by = provincia\n  )\n\n# A tibble: 4 × 5\n  provincia     n  mean median    sd\n  &lt;chr&gt;     &lt;int&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;\n1 BARCELONA   795  1.49   1.53 0.114\n2 TARRAGONA   232  1.49   1.55 0.117\n3 GIRONA      268  1.51   1.55 0.095\n4 LLEIDA      179  1.44   1.49 0.105\nPrices from the largest providers in Catalonia, 2025:\ngCat %&gt;%\n  filter(rotulo %in% (\n    summarise(gCat, .by = rotulo, n = n()) %&gt;%\n      arrange(n) %&gt;% pull(rotulo) %&gt;% tail(10)\n  )) %&gt;%\n  drop_na() %&gt;%\n  select(rotulo, precio) %&gt;%\n  ggplot(aes(rotulo, precio)) +\n  geom_boxplot() +\n  labs(\n    title = \"Gas prices in Catalonia, 2025\",\n    subtitle = \"Euros per litre of gas 95 E5 (10 largest providers)\"\n  )\nNarrow down geographical scope: Consider municipalities nearby Llinars del Vallès\nmuns &lt;- gCat %&gt;% \n  summarise(n = n(), m = round(mean(precio), 3), .by = c(municipio, id_municipio)) %&gt;% \n  filter(str_detect(municipio, \n    \"Llinars|Cardedeu|Vilamajor|Palautordera|Sant Celoni\"\n  ))\n\nknitr::kable(muns, caption = \"Average price and station count per municipality\")\n\n\nAverage price and station count per municipality\n\n\nmunicipio\nid_municipio\nn\nm\n\n\n\n\nCardedeu\n908\n4\n1.556\n\n\nLlinars del Vallès\n973\n3\n1.589\n\n\nSant Antoni de Vilamajor\n1060\n1\n1.529\n\n\nSant Celoni\n1065\n4\n1.526\n\n\nSanta Maria de Palautordera\n1123\n3\n1.501\nRetrieve daily prices for Gasolina 95 - E5 at all locations within scope. Define request parameters:\n# api end point\nfil &lt;- \"FiltroMunicipioProducto/\"\n\nt &lt;- Sys.time()\n# parameters\nanys &lt;- 1/12\nmun &lt;- set_names(muns$id_municipio, muns$municipio)\nprod &lt;- set_names(\"01\", \"gas95-e5\")\ndate &lt;- format(Sys.Date() - 1:(anys*365), \"%d-%m-%Y\")\nparams &lt;- expand_grid(date, mun, prod)\n\ngas &lt;- apply(params, 1, \\(x) mutate(get_gas(filtro = fil, args = x), date = as.Date(x[1]))) %&gt;% \n  bind_rows() %&gt;%\n  mutate(precio = as.numeric(gsub(\",\", \".\", precio_producto)))\nt &lt;- Sys.time() - t\nEvolution of average price per municipality:\nsummarise(gas, .by = c(municipio, date), price = mean(precio), desv = sd(precio)) %&gt;% \n  ggplot(aes(x = date, y = price, colour = municipio)) +\n  geom_line() +\n  labs(colour = \"Municipality\", title = \"Gas prive evolution, last 30 days\")"
+    "text": "Use this R libraries:\nlibrary(httr2)\nlibrary(dplyr)\nlibrary(purrr)\nlibrary(tidyr)\nlibrary(stringr)\nlibrary(ggplot2)\ntheme_set(\n  theme_bw() +\n  theme(\n    axis.title = element_blank()\n  )\n)\nDefine function to retrieve information:\nget_gas &lt;- function(filtro, args) {\n  paste0(\n    \"https://sedeaplicaciones.minetur.gob.es\",\n    \"/ServiciosRESTCarburantes/PreciosCarburantes/EstacionesTerrestresHist/\",\n    filtro, paste(args, collapse = \"/\")\n  ) %&gt;%\n    request() %&gt;%\n    req_perform() %&gt;%\n    resp_body_json() %&gt;%\n    .[[\"ListaEESSPrecio\"]] %&gt;%\n    map(\\(x) as_tibble(list_flatten(x))) %&gt;%\n    bind_rows() %&gt;%\n    janitor::clean_names()\n}\nRetrieve yesterday’s gas prices in catalan provinces:\nprov &lt;- c(\"08\", \"43\", \"17\", \"25\")\n\ngCat &lt;- map(prov, \\(x) get_gas(\n  filtro = \"FiltroProvincia/\",\n  args = c(format(Sys.Date() - 1, \"%d-%m-%Y\"), x)\n)) %&gt;%\n  bind_rows() %&gt;%\n  mutate(precio = as.numeric(gsub(\",\", \".\", precio_gasolina_95_e5)))\nSummary of gas stations and price statistics per province:1\ngCat %&gt;%\n  summarise(\n    n = n(),\n    mean = mean(precio, na.rm = TRUE) %&gt;% round(3),\n    median = median(precio, na.rm = TRUE) %&gt;% round(3),\n    sd = sd(precio, na.rm = TRUE) %&gt;% round(3),\n    .by = provincia\n  )\n\n# A tibble: 4 × 5\n  provincia     n  mean median    sd\n  &lt;chr&gt;     &lt;int&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;\n1 BARCELONA   790  1.49   1.53 0.113\n2 TARRAGONA   233  1.49   1.54 0.115\n3 GIRONA      268  1.51   1.55 0.095\n4 LLEIDA      179  1.44   1.49 0.105\nPrices from the largest providers in Catalonia, 2025:\ngCat %&gt;%\n  filter(rotulo %in% (\n    summarise(gCat, .by = rotulo, n = n()) %&gt;%\n      arrange(n) %&gt;% pull(rotulo) %&gt;% tail(10)\n  )) %&gt;%\n  drop_na() %&gt;%\n  select(rotulo, precio) %&gt;%\n  ggplot(aes(rotulo, precio)) +\n  geom_boxplot() +\n  labs(\n    title = \"Gas prices in Catalonia, 2025\",\n    subtitle = \"Euros per litre of gas 95 E5 (10 largest providers)\"\n  )\nNarrow down geographical scope: Consider municipalities nearby Llinars del Vallès\nmuns &lt;- gCat %&gt;% \n  summarise(n = n(), m = round(mean(precio), 3), .by = c(municipio, id_municipio)) %&gt;% \n  filter(str_detect(municipio, \n    \"Llinars|Cardedeu|Vilamajor|Palautordera|Sant Celoni\"\n  ))\n\nknitr::kable(muns, caption = \"Average price and station count per municipality\")\n\n\nAverage price and station count per municipality\n\n\nmunicipio\nid_municipio\nn\nm\n\n\n\n\nCardedeu\n908\n4\n1.551\n\n\nLlinars del Vallès\n973\n3\n1.589\n\n\nSant Antoni de Vilamajor\n1060\n1\n1.529\n\n\nSant Celoni\n1065\n4\n1.526\n\n\nSanta Maria de Palautordera\n1123\n3\n1.501\nRetrieve daily prices for Gasolina 95 - E5 at all locations within scope. Define request parameters:\n# api end point\nfil &lt;- \"FiltroMunicipioProducto/\"\n\nt &lt;- Sys.time()\n# parameters\nanys &lt;- 1/12\nmun &lt;- set_names(muns$id_municipio, muns$municipio)\nprod &lt;- set_names(\"01\", \"gas95-e5\")\ndate &lt;- format(Sys.Date() - 1:(anys*365), \"%d-%m-%Y\")\nparams &lt;- expand_grid(date, mun, prod)\n\ngas &lt;- apply(params, 1, \\(x) mutate(get_gas(filtro = fil, args = x), date = as.Date(x[1]))) %&gt;% \n  bind_rows() %&gt;%\n  mutate(precio = as.numeric(gsub(\",\", \".\", precio_producto)))\nt &lt;- Sys.time() - t\nEvolution of average price per municipality:\nsummarise(gas, .by = c(municipio, date), price = mean(precio), desv = sd(precio)) %&gt;% \n  ggplot(aes(x = date, y = price, colour = municipio)) +\n  geom_line() +\n  labs(colour = \"Municipality\", title = \"Gas prive evolution, last 30 days\")"
   },
   {
     "objectID": "notes/en/gas_price_time/index.html#footnotes",
@@ -103,6 +61,48 @@
     "title": "Preus de benzina - Geoportal",
     "section": "Footnotes",
     "text": "Footnotes\n\n\nAPI: Interfície de programació d’aplicacions. Permet l’intercanvi d’informació entre diferents programes informàtics.↩︎\nNo s’incluouen els possibles punts de racàrrega matrítims↩︎"
+  },
+  {
+    "objectID": "about-en.html",
+    "href": "about-en.html",
+    "title": "Ferran Garcia",
+    "section": "",
+    "text": "English  Català  Español\n\n\nI am a results-driven statistician and economist with a curious mindset and proactive approach, focused on transforming complex data into actionable insights and communicating them effectively to a broad audience.\n\nEducation: Doble degree in Statistica and Economica in UB and UPC. Erasmus exchange in Maastricht (1 year) and Sevilla (6 months)\nExperience: Statistic’s university department scolarship (2 years). Commercial data analyst in Amplifon (1 year). Multiple part time jobs (referee, recepcionist, waiter, professor)\nProjects: Bayesian Statistics, Spatio - Temporal modelling, Web Scrapping, Real Estate, Financial Markets"
+  },
+  {
+    "objectID": "about-ca.html",
+    "href": "about-ca.html",
+    "title": "Ferran Garcia",
+    "section": "",
+    "text": "English  Català  Español\n\n\nSóc un estadístic i economista orientat a resultats, amb actitud proactiva i ganes de seguir aprenent. M’especialitzo en analitzar i modelitzar dades per extreure informació d’interès i comunicar-la.\n\nEducation: Doble grau en Estadística i Economia a la UPC i UB. Intercanvi Erasmus anual a Maastricht i semestral a Sevilla.\nExperience: Becari estadística de l’universitat (2 anys) i analista de dades comercials a Amplifon (1 any), altres feines a temps parcial (àribtre, recepcionista, professor, cambrer)\nInteresos: Estadística Bayesiana, Models Espai - Temps, Web Scrapping, Mercat Inmobiliari, Mercats Financers"
+  },
+  {
+    "objectID": "notes/ca/geoportal_api/index.html",
+    "href": "notes/ca/geoportal_api/index.html",
+    "title": "Preus a les gasolineres d’Espanya",
+    "section": "",
+    "text": "On s’ón’ubiquen els punts de recàrrega?\nQuin carburant ofereixen?\nQuin preu cobren? Com canvia al llarg del temps?\nQuin horari obre?\nÉs d’autoservei?\nÉs una cooperativa?\nQui n’és el propietari?\nExisteixen portals similars a Europa"
+  },
+  {
+    "objectID": "notes/ca/geoportal_api/index.html#quina-informació-hi-ha-al-geoportal",
+    "href": "notes/ca/geoportal_api/index.html#quina-informació-hi-ha-al-geoportal",
+    "title": "Preus a les gasolineres d’Espanya",
+    "section": "",
+    "text": "On s’ón’ubiquen els punts de recàrrega?\nQuin carburant ofereixen?\nQuin preu cobren? Com canvia al llarg del temps?\nQuin horari obre?\nÉs d’autoservei?\nÉs una cooperativa?\nQui n’és el propietari?\nExisteixen portals similars a Europa"
+  },
+  {
+    "objectID": "notes/ca/geoportal_api/index.html#com-obtenim-les-dades",
+    "href": "notes/ca/geoportal_api/index.html#com-obtenim-les-dades",
+    "title": "Preus a les gasolineres d’Espanya",
+    "section": "Com obtenim les dades?",
+    "text": "Com obtenim les dades?\n\nConnexió amb la API\nCal connectarnos a la API del geoportal per obtenir les dades que ens interessen. Descarregarem en format .json, que R llegirà com llista. Finalment apilarem totes les observacions en una taula.\nEl geoportal ofereix múltiples APIs que donen accés a diferent informació (Servicios REST). Estem interessats en l’evolució dels preus de cada producte així que utilitzem la següent estructura:\nPart comú: Sempre serà la mateixa\nhttps://sedeaplicaciones.minetur.gob.es/ServiciosRESTCarburantes/PreciosCarburantes/\nPart Específica: Escollirem i parametritzarem en funció de l’informació que volem\nEstacionesTerrestresHist/FiltroProvinciaProducto/{FECHA}/{IDPROVINCIA}/{IDPRODUCTO}\n\n\nExemple en R\nUtilitzarem les següents llibreries d’R:\n\nsuppressWarnings(suppressMessages({\n  library(dplyr)\n  library(purrr)\n  library(httr2)\n}))\n\nEstem interessats en el preu de la gasolina 95 E5. Ens centrem en la província de Barcelona i volem l’informació del dia anterior. Els productes i províncies tenen codis associats, codificarem la data en format dd-mm-yy:\n\ndata &lt;- format(Sys.Date() - 1, \"%d-%m-%Y\")\nproducte &lt;- \"01\"\nprovincies &lt;- set_names(\n  c(\"08\", \"17\", \"25\", \"43\"), \n  c(\"barcelona\", \"girona\", \"lleida\", \"tarragona\")\n)\n\nConstruim l’url per cada província:\n\nbase_url &lt;- provincies %&gt;% \n  map(\\(prov) paste0(\n    \"https://sedeaplicaciones.minetur.gob.es/\",\n    \"ServiciosRESTCarburantes/PreciosCarburantes/\",\n    \"EstacionesTerrestresHist/FiltroProvinciaProducto/\",\n    data, \"/\", prov, \"/\", producte\n))\n\nDemanem l’informació, la convertim en llista i l’apilem en una taula per cada província:\n\nresponse &lt;- map(base_url, \\(url) req_perform(request(url)))\n\ntbl &lt;- response %&gt;% \n  map(\\(resp){\n    resp_body_json(resp)[[\"ListaEESSPrecio\"]] %&gt;% \n      map(\\(json) as_tibble(list_flatten(json))) %&gt;% \n      bind_rows() %&gt;% \n      mutate(PrecioProducto = as.numeric(sub(\",\", \".\", PrecioProducto)))\n  })\n\nFem una ullada als preus:\n\nwith(list_c(tbl), boxplot(PrecioProducto ~ Provincia, xlab = \"\", ylab = \"\"))\n\n\n\n\n\n\n\n\n\nhist(list_c(tbl)[[\"PrecioProducto\"]], breaks = 30, main = \"\", xlab = \"\", ylab = \"\")"
+  },
+  {
+    "objectID": "notes/ca/geoportal_api/index.html#més-enllà",
+    "href": "notes/ca/geoportal_api/index.html#més-enllà",
+    "title": "Preus a les gasolineres d’Espanya",
+    "section": "Més enllà",
+    "text": "Més enllà\n\nMapa de preus de gasolineres"
   },
   {
     "objectID": "index.html",
